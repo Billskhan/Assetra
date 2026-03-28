@@ -9,14 +9,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const dashboard_module_1 = require("./analytics/dashboard/dashboard.module");
-const contracts_module_1 = require("./construction/contracts/contracts.module");
-const projects_module_1 = require("./construction/projects/projects.module");
-const transactions_module_1 = require("./construction/transactions/transactions.module");
-const vendors_module_1 = require("./construction/vendors/vendors.module");
-const auth_module_1 = require("./platform/auth/auth.module");
-const prisma_module_1 = require("./platform/prisma/prisma.module");
 const app_controller_1 = require("./app.controller");
+const auth_module_1 = require("./auth/auth.module");
+const users_module_1 = require("./users/users.module");
+const organizations_module_1 = require("./organizations/organizations.module");
+const projects_module_1 = require("./projects/projects.module");
+const vendors_module_1 = require("./vendors/vendors.module");
+const contracts_module_1 = require("./contracts/contracts.module");
+const transactions_module_1 = require("./transactions/transactions.module");
+const dashboard_module_1 = require("./dashboard/dashboard.module");
+const prisma_module_1 = require("./platform/prisma/prisma.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -27,6 +29,8 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             prisma_module_1.PrismaModule,
             auth_module_1.AuthModule,
+            users_module_1.UsersModule,
+            organizations_module_1.OrganizationsModule,
             projects_module_1.ProjectsModule,
             vendors_module_1.VendorsModule,
             contracts_module_1.ContractsModule,

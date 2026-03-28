@@ -5,5 +5,15 @@
     "declaration": true,
     "sourceMap": true
   },
-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*spec.ts",
+    "src/analytics",
+    "src/construction",
+    "src/platform/auth",
+    "src/platform/users",
+    "src/platform/organizations"
+  ]
 }

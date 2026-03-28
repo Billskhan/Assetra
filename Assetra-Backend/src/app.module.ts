@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { DashboardModule } from './analytics/dashboard/dashboard.module';
-import { ContractsModule } from './construction/contracts/contracts.module';
-import { ProjectsModule } from './construction/projects/projects.module';
-import { TransactionsModule } from './construction/transactions/transactions.module';
-import { VendorsModule } from './construction/vendors/vendors.module';
-import { AuthModule } from './platform/auth/auth.module';
-import { PrismaModule } from './platform/prisma/prisma.module';
 import { AppController } from './app.controller';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { OrganizationsModule } from './organizations/organizations.module';
+import { ProjectsModule } from './projects/projects.module';
+import { VendorsModule } from './vendors/vendors.module';
+import { ContractsModule } from './contracts/contracts.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { PrismaModule } from './platform/prisma/prisma.module';
 
 @Module({
   controllers: [AppController],
@@ -15,6 +17,8 @@ import { AppController } from './app.controller';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AuthModule,
+    UsersModule,
+    OrganizationsModule,
     ProjectsModule,
     VendorsModule,
     ContractsModule,
