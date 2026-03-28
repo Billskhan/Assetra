@@ -1,0 +1,28 @@
+﻿<div class="page">
+  <div class="page-header">
+    <h2>Projects</h2>
+    <a routerLink="/projects/new">Add Project</a>
+  </div>
+
+  <div class="status" *ngIf="loading()">Loading projects...</div>
+  <div class="status error" *ngIf="error()">{{ error() }}</div>
+
+  <div class="empty" *ngIf="!loading() && projects().length === 0">
+    No projects found.
+  </div>
+
+  <div class="project-grid" *ngIf="!loading() && projects().length > 0">
+    <div class="project-card" *ngFor="let project of projects()">
+      <div class="header">
+        <div class="name">{{ project.name }}</div>
+        <div class="budget">{{ project.budget }}</div>
+      </div>
+      <div class="description">
+        {{ project.description || 'No description provided.' }}
+      </div>
+      <div class="meta" *ngIf="project.createdAt">
+        Created {{ project.createdAt | date: 'mediumDate' }}
+      </div>
+    </div>
+  </div>
+</div>

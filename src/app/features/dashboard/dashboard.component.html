@@ -1,0 +1,80 @@
+﻿<div class="page">
+  <h2>Dashboard</h2>
+
+  <div class="status" *ngIf="loading()">Loading dashboard...</div>
+  <div class="status error" *ngIf="error()">{{ error() }}</div>
+
+  <div class="status" *ngIf="!loading() && role() === 'STAKEHOLDER'">
+    Dashboard for stakeholder will be added in next phase.
+  </div>
+
+  <ng-container *ngIf="!loading() && role() !== 'STAKEHOLDER'">
+    <ng-container *ngIf="pmDashboard() as pm">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label">Pending Transactions</div>
+          <div class="value">{{ pm.pendingTransactions }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label">Pending Amount</div>
+          <div class="value">{{ pm.pendingAmount }}</div>
+        </div>
+      </div>
+
+      <section class="list-card">
+        <h3>Recent Pending Transactions</h3>
+        <div class="empty" *ngIf="pm.recentPendingTransactions.length === 0">
+          No pending transactions.
+        </div>
+        <div class="table" *ngIf="pm.recentPendingTransactions.length > 0">
+          <div class="row header">
+            <span>Title</span>
+            <span>Project</span>
+            <span>Amount</span>
+            <span>Created</span>
+          </div>
+          <div class="row" *ngFor="let item of pm.recentPendingTransactions">
+            <span>{{ item.title }}</span>
+            <span>{{ item.projectName }}</span>
+            <span>{{ item.amount }}</span>
+            <span>{{ item.createdAt | date: 'mediumDate' }}</span>
+          </div>
+        </div>
+      </section>
+    </ng-container>
+
+    <ng-container *ngIf="managerDashboard() as manager">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="label">Assigned Projects</div>
+          <div class="value">{{ manager.assignedProjects }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label">Pending Approvals</div>
+          <div class="value">{{ manager.pendingApprovalCount }}</div>
+        </div>
+      </div>
+
+      <section class="list-card">
+        <h3>Project Summaries</h3>
+        <div class="empty" *ngIf="manager.projectSummaries.length === 0">
+          No projects assigned.
+        </div>
+        <div class="table" *ngIf="manager.projectSummaries.length > 0">
+          <div class="row header">
+            <span>Project</span>
+            <span>Budget</span>
+            <span>Total Spend</span>
+            <span>Used %</span>
+          </div>
+          <div class="row" *ngFor="let item of manager.projectSummaries">
+            <span>{{ item.projectName }}</span>
+            <span>{{ item.budget }}</span>
+            <span>{{ item.totalSpend }}</span>
+            <span>{{ item.budgetUsedPercent }}%</span>
+          </div>
+        </div>
+      </section>
+    </ng-container>
+  </ng-container>
+</div>

@@ -1,0 +1,38 @@
+﻿<div class="login-page">
+  <div class="login-card">
+    <div class="brand">Assetra</div>
+    <p class="muted">Sign in to continue</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="you@company.com"
+        autocomplete="username"
+      />
+      <div class="field-error" *ngIf="form.controls.email.touched && form.controls.email.invalid">
+        Enter a valid email.
+      </div>
+
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        placeholder="********"
+        autocomplete="current-password"
+      />
+      <div class="field-error" *ngIf="form.controls.password.touched && form.controls.password.invalid">
+        Password is required.
+      </div>
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Signing in...' : 'Sign In' }}
+      </button>
+
+      <div class="form-error" *ngIf="error()">{{ error() }}</div>
+    </form>
+  </div>
+</div>

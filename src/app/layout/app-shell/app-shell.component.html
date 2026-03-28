@@ -1,0 +1,23 @@
+﻿<div class="shell">
+  <header class="topbar">
+    <div class="logo">Assetra</div>
+    <div class="user" *ngIf="user() as currentUser">
+      <span class="email">{{ currentUser.email }}</span>
+      <span class="role">{{ currentUser.role }}</span>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="sidebar">
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/projects" routerLinkActive="active">Projects</a>
+      <a routerLink="/vendors" routerLinkActive="active">Vendors</a>
+      <a routerLink="/transactions/new" routerLinkActive="active">New Transaction</a>
+      <button type="button" class="logout" (click)="logout()">Logout</button>
+    </aside>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

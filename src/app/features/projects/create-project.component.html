@@ -1,0 +1,40 @@
+﻿<div class="page">
+  <div class="page-header">
+    <h2>Add Project</h2>
+    <a routerLink="/projects">Back to Projects</a>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" formControlName="name" placeholder="Project name" />
+      <div class="field-error" *ngIf="form.controls.name.touched && form.controls.name.invalid">
+        Name is required.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        rows="3"
+        placeholder="Project description"
+      ></textarea>
+    </div>
+
+    <div class="field">
+      <label for="budget">Budget</label>
+      <input id="budget" type="number" formControlName="budget" min="0" />
+      <div class="field-error" *ngIf="form.controls.budget.touched && form.controls.budget.invalid">
+        Budget must be greater than 0.
+      </div>
+    </div>
+
+    <div class="status error" *ngIf="error()">{{ error() }}</div>
+
+    <button type="submit" [disabled]="saving() || form.invalid">
+      {{ saving() ? 'Saving...' : 'Create Project' }}
+    </button>
+  </form>
+</div>

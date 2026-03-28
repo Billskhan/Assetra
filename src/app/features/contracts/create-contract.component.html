@@ -1,0 +1,68 @@
+﻿<div class="page">
+  <h2>New Contract</h2>
+
+  <div class="status" *ngIf="projectsLoading()">Loading projects...</div>
+  <div class="status error" *ngIf="projectsError()">{{ projectsError() }}</div>
+
+  <div class="status" *ngIf="vendorsLoading()">Loading vendors...</div>
+  <div class="status error" *ngIf="vendorsError()">{{ vendorsError() }}</div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" formControlName="title" placeholder="Contract title" />
+      <div class="field-error" *ngIf="form.controls.title.touched && form.controls.title.invalid">
+        Title is required.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="description">Description (optional)</label>
+      <textarea id="description" formControlName="description" rows="3"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="totalAmount">Total Amount</label>
+      <input id="totalAmount" type="number" formControlName="totalAmount" min="0.01" />
+      <div class="field-error" *ngIf="form.controls.totalAmount.touched && form.controls.totalAmount.invalid">
+        Enter a positive amount.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="projectId">Project</label>
+      <select id="projectId" formControlName="projectId">
+        <option [ngValue]="null">Select a project</option>
+        <option *ngFor="let project of projects()" [ngValue]="project.id">
+          {{ project.name }}
+        </option>
+      </select>
+      <div class="field-error" *ngIf="form.controls.projectId.touched && form.controls.projectId.invalid">
+        Project is required.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="vendorId">Vendor</label>
+      <select id="vendorId" formControlName="vendorId">
+        <option [ngValue]="null">Select a vendor</option>
+        <option *ngFor="let vendor of vendors()" [ngValue]="vendor.id">
+          {{ vendor.name }}
+        </option>
+      </select>
+      <div class="field-error" *ngIf="form.controls.vendorId.touched && form.controls.vendorId.invalid">
+        Vendor is required.
+      </div>
+    </div>
+
+    <div class="status error" *ngIf="error()">{{ error() }}</div>
+    <div class="status success" *ngIf="success()">{{ success() }}</div>
+
+    <button
+      type="submit"
+      [disabled]="loading() || projectsLoading() || vendorsLoading() || form.invalid"
+    >
+      {{ loading() ? 'Saving...' : 'Create Contract' }}
+    </button>
+  </form>
+</div>

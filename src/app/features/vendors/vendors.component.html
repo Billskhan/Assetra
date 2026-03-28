@@ -1,0 +1,21 @@
+﻿<div class="page">
+  <div class="page-header">
+    <h2>Vendors</h2>
+    <a routerLink="/vendors/new">Add Vendor</a>
+  </div>
+
+  <div class="status" *ngIf="loading()">Loading vendors...</div>
+  <div class="status error" *ngIf="error()">{{ error() }}</div>
+
+  <div class="empty" *ngIf="!loading() && vendors().length === 0">
+    No vendors found.
+  </div>
+
+  <div class="vendor-grid" *ngIf="!loading() && vendors().length > 0">
+    <div class="vendor-card" *ngFor="let vendor of vendors()">
+      <div class="name">{{ vendor.name }}</div>
+      <div class="detail">Email: {{ vendor.email || '—' }}</div>
+      <div class="detail">Phone: {{ vendor.phone || '—' }}</div>
+    </div>
+  </div>
+</div>

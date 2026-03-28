@@ -1,0 +1,75 @@
+﻿<div class="page">
+  <h2>New Transaction</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" formControlName="title" placeholder="Transaction title" />
+    </div>
+
+    <div class="field">
+      <label for="projectId">Project ID</label>
+      <input
+        id="projectId"
+        formControlName="projectId"
+        placeholder="Project ID"
+      />
+    </div>
+
+    <div class="field">
+      <label for="contractId">Contract ID (optional)</label>
+      <input
+        id="contractId"
+        formControlName="contractId"
+        placeholder="Contract ID"
+      />
+    </div>
+
+    <div class="items" formArrayName="items">
+      <div
+        class="item-row"
+        *ngFor="let item of items.controls; let i = index"
+        [formGroupName]="i"
+      >
+        <div class="field">
+          <label>Name</label>
+          <input formControlName="name" placeholder="Item name" />
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input type="number" formControlName="quantity" min="1" />
+        </div>
+        <div class="field">
+          <label>Unit Price</label>
+          <input type="number" formControlName="unitPrice" min="0" />
+        </div>
+        <div class="field total">
+          <label>Line Total</label>
+          <div class="line-total">{{ itemTotal(i) }}</div>
+        </div>
+        <button
+          type="button"
+          class="remove"
+          (click)="removeItem(i)"
+          [disabled]="items.length === 1"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="add" (click)="addItem()">Add Item</button>
+
+    <div class="summary">
+      <div class="summary-label">Total (display only)</div>
+      <div class="summary-value">{{ total() }}</div>
+    </div>
+
+    <div class="status" *ngIf="error()">{{ error() }}</div>
+    <div class="status success" *ngIf="success()">{{ success() }}</div>
+
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Saving...' : 'Create Transaction' }}
+    </button>
+  </form>
+</div>

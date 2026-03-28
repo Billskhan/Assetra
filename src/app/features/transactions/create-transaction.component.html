@@ -1,0 +1,101 @@
+﻿<div class="page">
+  <h2>New Transaction</h2>
+
+  <div class="status" *ngIf="projectsLoading()">Loading projects...</div>
+  <div class="status error" *ngIf="projectsError()">{{ projectsError() }}</div>
+  <div class="status" *ngIf="!projectsLoading() && projects().length === 0">
+    No projects available yet.
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" formControlName="title" placeholder="Transaction title" />
+      <div class="field-error" *ngIf="form.controls.title.touched && form.controls.title.invalid">
+        Title is required.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="projectId">Project</label>
+      <select id="projectId" formControlName="projectId">
+        <option [ngValue]="null">Select a project</option>
+        <option *ngFor="let project of projects()" [ngValue]="project.id">
+          {{ project.name }}
+        </option>
+      </select>
+      <div class="field-error" *ngIf="form.controls.projectId.touched && form.controls.projectId.invalid">
+        Project is required.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="contractId">Contract ID (optional)</label>
+      <input
+        id="contractId"
+        type="number"
+        formControlName="contractId"
+        placeholder="Contract ID"
+      />
+    </div>
+
+    <div class="items" formArrayName="items">
+      <div
+        class="item-row"
+        *ngFor="let item of items.controls; let i = index"
+        [formGroupName]="i"
+      >
+        <div class="field">
+          <label>Name</label>
+          <input formControlName="name" placeholder="Item name" />
+          <div class="field-error" *ngIf="item.get('name')?.touched && item.get('name')?.invalid">
+            Required.
+          </div>
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input type="number" formControlName="quantity" min="1" />
+          <div class="field-error" *ngIf="item.get('quantity')?.touched && item.get('quantity')?.invalid">
+            Must be at least 1.
+          </div>
+        </div>
+        <div class="field">
+          <label>Unit Price</label>
+          <input type="number" formControlName="unitPrice" min="0" />
+          <div class="field-error" *ngIf="item.get('unitPrice')?.touched && item.get('unitPrice')?.invalid">
+            Must be 0 or more.
+          </div>
+        </div>
+        <div class="field total">
+          <label>Line Total</label>
+          <div class="line-total">{{ itemTotal(i) }}</div>
+        </div>
+        <button
+          type="button"
+          class="remove"
+          (click)="removeItem(i)"
+          [disabled]="items.length === 1"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="add" (click)="addItem()">Add Item</button>
+
+    <div class="summary">
+      <div class="summary-label">Total (display only)</div>
+      <div class="summary-value">{{ total() }}</div>
+    </div>
+
+    <div class="status error" *ngIf="error()">{{ error() }}</div>
+    <div class="status success" *ngIf="success()">{{ success() }}</div>
+
+    <button
+      type="submit"
+      [disabled]="saving() || projectsLoading() || projects().length === 0 || form.invalid"
+    >
+      {{ saving() ? 'Saving...' : 'Create Transaction' }}
+    </button>
+  </form>
+</div>
