@@ -18,17 +18,20 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  private readonly defaultEmail = 'admin@assetra.com';
+  private readonly defaultPassword = 'Password123';
+
   loading = signal(false);
   error = signal<string | null>(null);
 
   form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]]
+    email: [this.defaultEmail, [Validators.required, Validators.email]],
+    password: [this.defaultPassword, [Validators.required]]
   });
 
   constructor() {
     if (this.auth.isAuthenticated()) {
-      this.router.navigateByUrl('/dashboard');
+      this.router.navigateByUrl('/dashboard/pm');
     }
   }
 
@@ -51,7 +54,7 @@ export class LoginComponent {
       .login(payload)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: () => this.router.navigateByUrl('/dashboard'),
+        next: () => this.router.navigateByUrl('/dashboard/pm'),
         error: () =>
           this.error.set('Invalid credentials or a server error occurred.')
       });

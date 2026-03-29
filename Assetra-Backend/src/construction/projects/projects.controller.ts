@@ -1,46 +1,54 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+﻿import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
-import { CurrentUser } from '../../platform/auth/current-user.decorator';
 import { JwtAuthGuard } from '../../platform/auth/jwt-auth.guard';
 import { Roles } from '../../platform/auth/roles.decorator';
 import { RolesGuard } from '../../platform/auth/roles.guard';
-import { AuthUser } from '../../platform/auth/interfaces/auth-user.interface';
-import { AssignProjectUserDto } from './dto/assign-project-user.dto';
-import { CreateProjectDto } from './dto/create-project.dto';
+import { CurrentUser } from '../../platform/auth/current-user.decorator';
+import type { AuthUser } from '../../platform/auth/interfaces/auth-user.interface';
 import { ProjectsService } from './projects.service';
+import { CreateProjectDto } from './dto/create-project.dto';
+import { AssignProjectUserDto } from './dto/assign-project-user.dto';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectsController {
-  constructor(private projectsService: ProjectsService) {}
+  constructor(private readonly projectsService: ProjectsService) {}
 
-  @Post()
   @Roles(Role.ADMIN, Role.PROJECT_MANAGER)
-  create(@CurrentUser() user: AuthUser, @Body() dto: CreateProjectDto) {
+  @Post()
+  create(@Body() dto: CreateProjectDto, @CurrentUser() user: AuthUser) {
     return this.projectsService.create(dto, user);
   }
 
-  @Get()
   @Roles(Role.ADMIN, Role.PROJECT_MANAGER, Role.MANAGER, Role.STAKEHOLDER)
+  @Get()
   findAll(@CurrentUser() user: AuthUser) {
     return this.projectsService.findAll(user);
   }
 
-  @Get(':projectId')
   @Roles(Role.ADMIN, Role.PROJECT_MANAGER, Role.MANAGER, Role.STAKEHOLDER)
+  @Get(':projectId')
   findOne(
-    @CurrentUser() user: AuthUser,
-    @Param('projectId', ParseIntPipe) projectId: number
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @CurrentUser() user: AuthUser
   ) {
     return this.projectsService.findOne(projectId, user);
   }
 
-  @Post(':projectId/users')
   @Roles(Role.ADMIN, Role.PROJECT_MANAGER)
+  @Post(':projectId/users')
   assignUser(
-    @CurrentUser() user: AuthUser,
     @Param('projectId', ParseIntPipe) projectId: number,
-    @Body() dto: AssignProjectUserDto
+    @Body() dto: AssignProjectUserDto,
+    @CurrentUser() user: AuthUser
   ) {
     return this.projectsService.assignUser(projectId, dto, user);
   }

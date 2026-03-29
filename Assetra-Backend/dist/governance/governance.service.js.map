@@ -1,0 +1,1 @@
+{"version":3,"file":"governance.service.js","sourceRoot":"","sources":["../../src/governance/governance.service.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAA4C;AAGrC,IAAM,iBAAiB,GAAvB,MAAM,iBAAiB;IAC5B,SAAS;QACP,OAAO,EAAE,MAAM,EAAE,IAAI,EAAE,MAAM,EAAE,YAAY,EAAE,CAAC;IAChD,CAAC;CACF,CAAA;AAJY,8CAAiB;4BAAjB,iBAAiB;IAD7B,IAAA,mBAAU,GAAE;GACA,iBAAiB,CAI7B"}

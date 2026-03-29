@@ -1,5 +1,5 @@
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+﻿import { Type } from 'class-transformer';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateProjectDto {
   @IsOptional()
@@ -13,6 +13,5 @@ export class UpdateProjectDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
   budget?: number;
 }

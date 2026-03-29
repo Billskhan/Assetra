@@ -1,4 +1,5 @@
 ﻿import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -39,7 +40,6 @@ export class CreateProjectComponent {
     this.error.set(null);
 
     const raw = this.form.getRawValue();
-
     this.projectsService
       .createProject({
         name: raw.name ?? '',
@@ -48,8 +48,45 @@ export class CreateProjectComponent {
       })
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
-        next: () => this.router.navigateByUrl('/projects'),
-        error: () => this.error.set('Failed to create project.')
+        next: () => this.router.navigateByUrl('/dashboard/pm'),
+        error: (err: HttpErrorResponse) => {
+          const serverMessage = this.extractErrorMessage(err);
+          this.error.set(serverMessage ?? 'Failed to create project.');
+        }
       });
+  }
+
+  private extractErrorMessage(error: HttpErrorResponse): string | null {
+    if (!error) {
+      return null;
+    }
+
+    const payload = error.error as
+      | { message?: string | string[]; error?: string }
+      | string
+      | null;
+
+    if (typeof payload === 'string') {
+      return payload;
+    }
+
+    const message = payload?.message;
+    if (Array.isArray(message)) {
+      return message.filter(Boolean).join(', ');
+    }
+
+    if (typeof message === 'string' && message.trim().length > 0) {
+      return message;
+    }
+
+    if (typeof payload?.error === 'string' && payload.error.trim().length > 0) {
+      return payload.error;
+    }
+
+    if (typeof error.status === 'number' && error.status !== 0) {
+      return `Request failed (${error.status}).`;
+    }
+
+    return null;
   }
 }

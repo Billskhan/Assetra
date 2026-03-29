@@ -1,5 +1,5 @@
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateContractDto {
   @IsString()
@@ -11,16 +11,13 @@ export class CreateContractDto {
 
   @Type(() => Number)
   @IsNumber()
-  @Min(0.01)
   totalAmount!: number;
 
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
   projectId!: number;
 
   @Type(() => Number)
   @IsNumber()
-  @Min(1)
   vendorId!: number;
 }

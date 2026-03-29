@@ -1,0 +1,116 @@
+<div class="page" *ngIf="project() as project; else notFound">
+  <div class="page-header">
+    <div>
+      <h2>{{ project.name }}</h2>
+      <p class="subtitle">Project dashboard overview for PM and Manager workflows.</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn" (click)="addVendor()">Add Vendor</button>
+      <button type="button" class="btn" (click)="removeVendor()">Remove Vendor</button>
+      <button type="button" class="btn" (click)="createContract()">Create Contract</button>
+      <button type="button" class="btn primary" (click)="addTransaction()">Add Transaction</button>
+    </div>
+  </div>
+
+  <section class="details-card">
+    <div class="detail-grid">
+      <div>
+        <div class="label">Location</div>
+        <div class="value">{{ project.location }}</div>
+      </div>
+      <div>
+        <div class="label">Status</div>
+        <div class="value">{{ project.status }}</div>
+      </div>
+      <div>
+        <div class="label">Budget</div>
+        <div class="value">{{ project.budget | currency: 'USD':'symbol':'1.0-0' }}</div>
+      </div>
+      <div>
+        <div class="label">Schedule</div>
+        <div class="value" *ngIf="project.startDate && project.endDate; else scheduleTbd">
+          {{ project.startDate | date: 'mediumDate' }} -
+          {{ project.endDate | date: 'mediumDate' }}
+        </div>
+        <ng-template #scheduleTbd>
+          <div class="value">Schedule TBD</div>
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="description">
+      {{ project.description || 'No description provided.' }}
+    </div>
+  </section>
+
+  <section class="list-card">
+    <div class="section-header">
+      <h3>Assigned Vendors</h3>
+    </div>
+    <div class="empty" *ngIf="project.vendors.length === 0">No vendors assigned yet.</div>
+    <div class="table" *ngIf="project.vendors.length > 0">
+      <div class="row header">
+        <span>Vendor</span>
+        <span>Category</span>
+        <span>Status</span>
+      </div>
+      <div class="row" *ngFor="let vendor of project.vendors">
+        <span class="title">{{ vendor.name }}</span>
+        <span>{{ vendor.category }}</span>
+        <span>{{ vendor.status }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="list-card">
+    <div class="section-header">
+      <h3>Contracts</h3>
+    </div>
+    <div class="empty" *ngIf="project.contracts.length === 0">No contracts created yet.</div>
+    <div class="table" *ngIf="project.contracts.length > 0">
+      <div class="row header contracts">
+        <span>Contract</span>
+        <span>Vendor</span>
+        <span>Amount</span>
+        <span>Status</span>
+      </div>
+      <div class="row contracts" *ngFor="let contract of project.contracts">
+        <span class="title">{{ contract.title }}</span>
+        <span>{{ contract.vendor }}</span>
+        <span>{{ contract.amount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ contract.status }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="list-card">
+    <div class="section-header">
+      <h3>Recent Transactions</h3>
+    </div>
+    <div class="empty" *ngIf="project.transactions.length === 0">
+      No transactions logged yet.
+    </div>
+    <div class="table" *ngIf="project.transactions.length > 0">
+      <div class="row header transactions">
+        <span>Transaction</span>
+        <span>Amount</span>
+        <span>Status</span>
+        <span>Date</span>
+      </div>
+      <div class="row transactions" *ngFor="let txn of project.transactions">
+        <span class="title">{{ txn.title }}</span>
+        <span>{{ txn.amount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ txn.status }}</span>
+        <span>{{ txn.date | date: 'mediumDate' }}</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<ng-template #notFound>
+  <div class="page">
+    <h2>Project not found</h2>
+    <p class="subtitle">The project you requested does not exist in the mock dataset.</p>
+    <a class="link" routerLink="/dashboard/pm">Back to Dashboard</a>
+  </div>
+</ng-template>

@@ -52,7 +52,7 @@ export class AuthService {
           email: dto.email,
           passwordHash,
           role: Role.ADMIN,
-          name: dto.name
+          fullName: dto.name
         }
       });
     });

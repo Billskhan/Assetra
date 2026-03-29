@@ -9,6 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { finalize, startWith } from 'rxjs';
 import { Project } from '../projects/projects.models';
 import { ProjectsService } from '../projects/projects.service';
@@ -42,6 +43,7 @@ export class CreateTransactionComponent implements OnInit {
   private fb = inject(FormBuilder);
   private transactionsService = inject(TransactionsService);
   private projectsService = inject(ProjectsService);
+  private route = inject(ActivatedRoute);
 
   saving = signal(false);
   error = signal<string | null>(null);
@@ -86,6 +88,7 @@ export class CreateTransactionComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProjects();
+    this.applyProjectParam();
   }
 
   addItem(): void {
@@ -160,6 +163,20 @@ export class CreateTransactionComponent implements OnInit {
         this.projectsLoading.set(false);
       }
     });
+  }
+
+  private applyProjectParam(): void {
+    const projectIdParam = this.route.snapshot.queryParamMap.get('projectId');
+    if (!projectIdParam) {
+      return;
+    }
+
+    const projectId = Number(projectIdParam);
+    if (!Number.isFinite(projectId)) {
+      return;
+    }
+
+    this.form.patchValue({ projectId });
   }
 
   private createItem(): TransactionItemForm {

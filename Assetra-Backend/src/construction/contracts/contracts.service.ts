@@ -3,136 +3,159 @@ import {
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { ContractStatus, Role } from '@prisma/client';
+import { Contract, ContractStatus, Role } from '@prisma/client';
 import { PrismaService } from '../../platform/prisma/prisma.service';
-import { AuthUser } from '../../platform/auth/interfaces/auth-user.interface';
-import { ADMIN_ROLES } from '../../common/roles';
+import type { AuthUser } from '../../platform/auth/interfaces/auth-user.interface';
 import { CreateContractDto } from './dto/create-contract.dto';
-
-const CONTRACT_SELECT = {
-  id: true,
-  title: true,
-  description: true,
-  totalAmount: true,
-  status: true,
-  createdAt: true,
-  project: { select: { id: true, name: true } },
-  vendor: { select: { id: true, name: true } }
-};
 
 @Injectable()
 export class ContractsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateContractDto, user: AuthUser) {
-    if (!ADMIN_ROLES.includes(user.role)) {
-      throw new ForbiddenException('Not allowed to create contracts.');
-    }
-
+  async create(dto: CreateContractDto, user: AuthUser): Promise<Contract> {
     const project = await this.prisma.project.findFirst({
-      where: { id: dto.projectId, organizationId: user.organizationId },
-      select: { id: true }
+      where: {
+        id: dto.projectId,
+        organizationId: user.organizationId
+      },
+      include: {
+        projectUsers: { select: { userId: true } }
+      }
     });
 
     if (!project) {
-      throw new NotFoundException('Project not found.');
+      throw new NotFoundException('Project not found');
+    }
+
+    const canAccess =
+      user.role === Role.ADMIN ||
+      user.role === Role.PROJECT_MANAGER ||
+      project.projectUsers.some((pu) => pu.userId === user.userId);
+
+    if (!canAccess) {
+      throw new ForbiddenException('Project access denied');
     }
 
     const vendor = await this.prisma.vendor.findFirst({
-      where: { id: dto.vendorId, organizationId: user.organizationId },
-      select: { id: true }
+      where: {
+        id: dto.vendorId,
+        organizationId: user.organizationId
+      }
     });
 
     if (!vendor) {
-      throw new NotFoundException('Vendor not found.');
+      throw new NotFoundException('Vendor not found');
     }
 
-    const contract = await this.prisma.contract.create({
+    const governance = await this.prisma.projectGovernance.findUnique({
+      where: {
+        projectId: dto.projectId
+      }
+    });
+
+    const status = governance?.requireContractApproval
+      ? ContractStatus.DRAFT
+      : ContractStatus.ACTIVE;
+
+    return this.prisma.contract.create({
       data: {
-        organizationId: user.organizationId,
         title: dto.title,
         description: dto.description,
         totalAmount: dto.totalAmount,
-        status: ContractStatus.DRAFT,
-        projectId: project.id,
-        vendorId: vendor.id
+        status,
+        organizationId: user.organizationId,
+        projectId: dto.projectId,
+        vendorId: dto.vendorId
+      }
+    });
+  }
+
+  async findAll(user: AuthUser): Promise<Contract[]> {
+    if (user.role === Role.ADMIN || user.role === Role.PROJECT_MANAGER) {
+      return this.prisma.contract.findMany({
+        where: {
+          organizationId: user.organizationId
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+    }
+
+    return this.prisma.contract.findMany({
+      where: {
+        organizationId: user.organizationId,
+        project: {
+          projectUsers: {
+            some: {
+              userId: user.userId
+            }
+          }
+        }
       },
-      select: { id: true }
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
-
-    return { id: contract.id };
   }
 
-  async findAll(user: AuthUser) {
-    if (user.role === Role.VENDOR) {
-      throw new ForbiddenException('Contract access denied.');
-    }
-
-    const where: Record<string, unknown> = {
-      organizationId: user.organizationId
-    };
-
-    if (!ADMIN_ROLES.includes(user.role)) {
-      where.project = {
-        projectUsers: { some: { userId: user.userId } }
-      };
-    }
-
-    const contracts = await this.prisma.contract.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      select: CONTRACT_SELECT
+  async findByProject(projectId: number, user: AuthUser): Promise<Contract[]> {
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id: projectId,
+        organizationId: user.organizationId
+      },
+      include: {
+        projectUsers: { select: { userId: true } }
+      }
     });
 
-    return contracts.map((contract) => ({
-      ...contract,
-      totalAmount: Number(contract.totalAmount)
-    }));
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const canAccess =
+      user.role === Role.ADMIN ||
+      user.role === Role.PROJECT_MANAGER ||
+      project.projectUsers.some((pu) => pu.userId === user.userId);
+
+    if (!canAccess) {
+      throw new ForbiddenException('Project access denied');
+    }
+
+    return this.prisma.contract.findMany({
+      where: {
+        projectId,
+        organizationId: user.organizationId
+      },
+      include: {
+        vendor: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
   }
 
-  async findOne(contractId: number, user: AuthUser) {
-    if (user.role === Role.VENDOR) {
-      throw new ForbiddenException('Contract access denied.');
+  async approve(contractId: number, user: AuthUser): Promise<Contract> {
+    if (user.role !== Role.ADMIN && user.role !== Role.PROJECT_MANAGER) {
+      throw new ForbiddenException('Approval not allowed');
     }
 
     const contract = await this.prisma.contract.findFirst({
-      where: { id: contractId, organizationId: user.organizationId },
-      select: {
-        ...CONTRACT_SELECT,
-        project: {
-          select: {
-            id: true,
-            name: true,
-            projectUsers: { select: { userId: true } }
-          }
-        }
+      where: {
+        id: contractId,
+        organizationId: user.organizationId
       }
     });
 
     if (!contract) {
-      throw new NotFoundException('Contract not found.');
+      throw new NotFoundException('Contract not found');
     }
 
-    if (ADMIN_ROLES.includes(user.role)) {
-      return {
-        ...contract,
-        project: { id: contract.project.id, name: contract.project.name },
-        totalAmount: Number(contract.totalAmount)
-      };
-    }
-
-    const assigned = contract.project.projectUsers.some(
-      (projectUser) => projectUser.userId === user.userId
-    );
-
-    if (!assigned) {
-      throw new ForbiddenException('Contract access denied.');
-    }
-
-    return {
-      ...contract,
-      project: { id: contract.project.id, name: contract.project.name },
-      totalAmount: Number(contract.totalAmount)
-    };
+    return this.prisma.contract.update({
+      where: { id: contractId },
+      data: { status: ContractStatus.ACTIVE }
+    });
   }
 }

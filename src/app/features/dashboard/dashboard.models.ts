@@ -1,27 +1,35 @@
-﻿export interface PmRecentPendingTransaction {
+export interface PmDashboardSummary {
+  totalProjects: number;
+  totalVendors: number;
+  totalStakeholders: number;
+}
+
+export interface PmDashboardProject {
   id: number;
-  title: string;
-  amount: number;
-  createdAt: string | Date;
-  projectName: string;
-}
-
-export interface PmDashboardResponse {
-  pendingTransactions: number;
-  pendingAmount: number;
-  recentPendingTransactions: PmRecentPendingTransaction[];
-}
-
-export interface ManagerProjectSummary {
-  projectId: number;
-  projectName: string;
+  name: string;
+  location: string;
   budget: number;
-  totalSpend: number;
-  budgetUsedPercent: number;
+  status: string;
 }
 
-export interface ManagerDashboardResponse {
-  assignedProjects: number;
-  pendingApprovalCount: number;
-  projectSummaries: ManagerProjectSummary[];
+export interface PmDashboardVendor {
+  id: number;
+  name: string;
+  category: string;
+  activeContracts: number;
+  region: string;
+}
+
+export interface PmDashboardStakeholder {
+  id: number;
+  name: string;
+  role: string;
+  organization: string;
+}
+
+export interface PmDashboardView {
+  summary: PmDashboardSummary;
+  projects: PmDashboardProject[];
+  vendors: PmDashboardVendor[];
+  stakeholders: PmDashboardStakeholder[];
 }

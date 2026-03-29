@@ -12,7 +12,7 @@ export class UsersService {
     email: string;
     password: string;
     role: Role;
-    name?: string;
+    fullName: string;
   }) {
     const passwordHash = await bcrypt.hash(params.password, 10);
 
@@ -22,7 +22,7 @@ export class UsersService {
         email: params.email,
         passwordHash,
         role: params.role,
-        name: params.name
+        fullName: params.fullName
       }
     });
   }

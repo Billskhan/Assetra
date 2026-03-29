@@ -13,7 +13,7 @@ import { RolesGuard } from './roles.guard';
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
+      secret: process.env.JWT_SECRET || 'assetra-secret',
       signOptions: { expiresIn: '7d' }
     })
   ],

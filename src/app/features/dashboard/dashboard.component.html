@@ -1,80 +1,100 @@
-﻿<div class="page">
-  <h2>Dashboard</h2>
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>Project Manager Dashboard</h2>
+      <p class="subtitle">Snapshot of active projects, vendors, and key stakeholders.</p>
+    </div>
+    <div class="actions">
+      <a class="btn primary" routerLink="/projects/new">Add Project</a>
+      <button type="button" class="btn">Add Vendor</button>
+      <button type="button" class="btn">Add Stakeholder</button>
+    </div>
+  </div>
 
   <div class="status" *ngIf="loading()">Loading dashboard...</div>
   <div class="status error" *ngIf="error()">{{ error() }}</div>
 
-  <div class="status" *ngIf="!loading() && role() === 'STAKEHOLDER'">
-    Dashboard for stakeholder will be added in next phase.
-  </div>
+  <ng-container *ngIf="!loading() && dashboard() as data">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">Total Projects</div>
+        <div class="value">{{ data.summary.totalProjects }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Total Vendors</div>
+        <div class="value">{{ data.summary.totalVendors }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Total Stakeholders</div>
+        <div class="value">{{ data.summary.totalStakeholders }}</div>
+      </div>
+    </div>
 
-  <ng-container *ngIf="!loading() && role() !== 'STAKEHOLDER'">
-    <ng-container *ngIf="pmDashboard() as pm">
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="label">Pending Transactions</div>
-          <div class="value">{{ pm.pendingTransactions }}</div>
+    <section class="list-card">
+      <div class="section-header">
+        <h3>Projects</h3>
+      </div>
+      <div class="empty" *ngIf="data.projects.length === 0">
+        No projects available.
+      </div>
+      <div class="table" *ngIf="data.projects.length > 0">
+        <div class="row header">
+          <span>Project</span>
+          <span>Location</span>
+          <span>Budget</span>
+          <span>Status</span>
+          <span></span>
         </div>
-        <div class="kpi-card">
-          <div class="label">Pending Amount</div>
-          <div class="value">{{ pm.pendingAmount }}</div>
+        <div class="row" *ngFor="let project of data.projects">
+          <span class="title">{{ project.name }}</span>
+          <span>{{ project.location }}</span>
+          <span>{{ project.budget | currency: 'USD':'symbol':'1.0-0' }}</span>
+          <span>{{ project.status }}</span>
+          <span>
+            <a class="link" [routerLink]="['/projects', project.id]">Open Project</a>
+          </span>
         </div>
       </div>
+    </section>
 
-      <section class="list-card">
-        <h3>Recent Pending Transactions</h3>
-        <div class="empty" *ngIf="pm.recentPendingTransactions.length === 0">
-          No pending transactions.
+    <section class="list-card">
+      <div class="section-header">
+        <h3>Vendors</h3>
+      </div>
+      <div class="empty" *ngIf="data.vendors.length === 0">No vendors listed.</div>
+      <div class="table" *ngIf="data.vendors.length > 0">
+        <div class="row header vendors">
+          <span>Vendor</span>
+          <span>Category</span>
+          <span>Active Contracts</span>
+          <span>Region</span>
         </div>
-        <div class="table" *ngIf="pm.recentPendingTransactions.length > 0">
-          <div class="row header">
-            <span>Title</span>
-            <span>Project</span>
-            <span>Amount</span>
-            <span>Created</span>
-          </div>
-          <div class="row" *ngFor="let item of pm.recentPendingTransactions">
-            <span>{{ item.title }}</span>
-            <span>{{ item.projectName }}</span>
-            <span>{{ item.amount }}</span>
-            <span>{{ item.createdAt | date: 'mediumDate' }}</span>
-          </div>
-        </div>
-      </section>
-    </ng-container>
-
-    <ng-container *ngIf="managerDashboard() as manager">
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="label">Assigned Projects</div>
-          <div class="value">{{ manager.assignedProjects }}</div>
-        </div>
-        <div class="kpi-card">
-          <div class="label">Pending Approvals</div>
-          <div class="value">{{ manager.pendingApprovalCount }}</div>
+        <div class="row vendors" *ngFor="let vendor of data.vendors">
+          <span class="title">{{ vendor.name }}</span>
+          <span>{{ vendor.category }}</span>
+          <span>{{ vendor.activeContracts }}</span>
+          <span>{{ vendor.region }}</span>
         </div>
       </div>
+    </section>
 
-      <section class="list-card">
-        <h3>Project Summaries</h3>
-        <div class="empty" *ngIf="manager.projectSummaries.length === 0">
-          No projects assigned.
+    <section class="list-card">
+      <div class="section-header">
+        <h3>Stakeholders</h3>
+      </div>
+      <div class="empty" *ngIf="data.stakeholders.length === 0">No stakeholders yet.</div>
+      <div class="table" *ngIf="data.stakeholders.length > 0">
+        <div class="row header stakeholders">
+          <span>Name</span>
+          <span>Role</span>
+          <span>Organization</span>
         </div>
-        <div class="table" *ngIf="manager.projectSummaries.length > 0">
-          <div class="row header">
-            <span>Project</span>
-            <span>Budget</span>
-            <span>Total Spend</span>
-            <span>Used %</span>
-          </div>
-          <div class="row" *ngFor="let item of manager.projectSummaries">
-            <span>{{ item.projectName }}</span>
-            <span>{{ item.budget }}</span>
-            <span>{{ item.totalSpend }}</span>
-            <span>{{ item.budgetUsedPercent }}%</span>
-          </div>
+        <div class="row stakeholders" *ngFor="let stakeholder of data.stakeholders">
+          <span class="title">{{ stakeholder.name }}</span>
+          <span>{{ stakeholder.role }}</span>
+          <span>{{ stakeholder.organization }}</span>
         </div>
-      </section>
-    </ng-container>
+      </div>
+    </section>
   </ng-container>
 </div>

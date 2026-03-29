@@ -1,6 +1,6 @@
 ﻿import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
+import { of, tap } from 'rxjs';
 import { decodeJwtPayload, mapJwtToUser } from './jwt.util';
 import { AuthUser, JwtPayload, LoginRequest, LoginResponse } from './auth.models';
 
@@ -9,6 +9,7 @@ import { AuthUser, JwtPayload, LoginRequest, LoginResponse } from './auth.models
 })
 export class AuthService {
   private readonly storageKey = 'assetra.token';
+  private readonly useMockAuth = false;
 
   token = signal<string | null>(null);
   currentUser = signal<AuthUser | null>(null);
@@ -17,6 +18,12 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(credentials: LoginRequest) {
+    if (this.useMockAuth) {
+      const token = this.buildMockToken(credentials.email);
+      this.setSession(token);
+      return of({ access_token: token } as LoginResponse);
+    }
+
     return this.http
       .post<LoginResponse>('/auth/login', credentials)
       .pipe(
@@ -78,5 +85,27 @@ export class AuthService {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(this.storageKey);
     }
+  }
+
+  private buildMockToken(email: string): string {
+    const now = Math.floor(Date.now() / 1000);
+    const payload: JwtPayload = {
+      sub: 1,
+      orgId: 1,
+      role: 'PROJECT_MANAGER',
+      email,
+      iat: now,
+      exp: now + 60 * 60 * 8
+    };
+
+    const header = { alg: 'none', typ: 'JWT' };
+
+    return `${this.base64UrlEncode(header)}.${this.base64UrlEncode(payload)}.`;
+  }
+
+  private base64UrlEncode(value: object): string {
+    const json = JSON.stringify(value);
+    const base64 = btoa(json);
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
 }

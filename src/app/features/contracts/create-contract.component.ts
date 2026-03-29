@@ -1,6 +1,7 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Project } from '../projects/projects.models';
 import { ProjectsService } from '../projects/projects.service';
@@ -21,6 +22,7 @@ export class CreateContractComponent implements OnInit {
   private fb = inject(FormBuilder);
   private contractsService = inject(ContractsService);
   private projectsService = inject(ProjectsService);
+  private route = inject(ActivatedRoute);
 
   loading = signal(false);
   error = signal<string | null>(null);
@@ -44,6 +46,7 @@ export class CreateContractComponent implements OnInit {
   ngOnInit(): void {
     this.loadProjects();
     this.loadVendors();
+    this.applyProjectParam();
   }
 
   submit(): void {
@@ -118,5 +121,19 @@ export class CreateContractComponent implements OnInit {
         this.vendorsLoading.set(false);
       }
     });
+  }
+
+  private applyProjectParam(): void {
+    const projectIdParam = this.route.snapshot.queryParamMap.get('projectId');
+    if (!projectIdParam) {
+      return;
+    }
+
+    const projectId = Number(projectIdParam);
+    if (!Number.isFinite(projectId)) {
+      return;
+    }
+
+    this.form.patchValue({ projectId });
   }
 }

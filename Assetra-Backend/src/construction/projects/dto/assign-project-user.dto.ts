@@ -1,5 +1,5 @@
+﻿import { Type } from 'class-transformer';
 import { IsEnum, IsNumber } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ProjectRole } from '@prisma/client';
 
 export class AssignProjectUserDto {

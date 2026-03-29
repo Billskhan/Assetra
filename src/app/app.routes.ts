@@ -15,9 +15,10 @@ export const appRoutes: Routes = [
     component: AppShellComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard/pm' },
+      { path: 'dashboard', pathMatch: 'full', redirectTo: 'dashboard/pm' },
       {
-        path: 'dashboard',
+        path: 'dashboard/pm',
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then(
             (m) => m.DashboardComponent
@@ -38,6 +39,13 @@ export const appRoutes: Routes = [
           )
       },
       {
+        path: 'projects/:id',
+        loadComponent: () =>
+          import('./features/projects/project-dashboard.component').then(
+            (m) => m.ProjectDashboardComponent
+          )
+      },
+      {
         path: 'vendors/new',
         loadComponent: () =>
           import('./features/vendors/create-vendor.component').then(
@@ -49,6 +57,20 @@ export const appRoutes: Routes = [
         loadComponent: () =>
           import('./features/vendors/vendors.component').then(
             (m) => m.VendorsComponent
+          )
+      },
+      {
+        path: 'contracts/new',
+        loadComponent: () =>
+          import('./features/contracts/create-contract.component').then(
+            (m) => m.CreateContractComponent
+          )
+      },
+      {
+        path: 'contracts',
+        loadComponent: () =>
+          import('./features/contracts/contracts.component').then(
+            (m) => m.ContractsComponent
           )
       },
       {

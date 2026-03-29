@@ -12,7 +12,15 @@ export class ProjectsService {
     return this.http.get<Project[]>('/projects');
   }
 
-  createProject(payload: { name: string; description?: string; budget: number }) {
+  getProjectById(id: number) {
+    return this.http.get<Project>(`/projects/${id}`);
+  }
+
+  createProject(payload: {
+    name: string;
+    description?: string;
+    budget: number;
+  }) {
     return this.http.post<Project>('/projects', payload);
   }
 }

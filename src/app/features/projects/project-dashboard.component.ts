@@ -1,0 +1,119 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, of } from 'rxjs';
+import { getMockProjectById, PortfolioProject } from '../../core/mock/portfolio.mock';
+import { Project } from './projects.models';
+import { ProjectsService } from './projects.service';
+
+@Component({
+  selector: 'app-project-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
+  templateUrl: './project-dashboard.component.html',
+  styleUrls: ['./project-dashboard.component.css']
+})
+export class ProjectDashboardComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private projectsService = inject(ProjectsService);
+
+  private projectId: number | null = null;
+  project = signal<PortfolioProject | null>(null);
+
+  ngOnInit(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (!Number.isFinite(id)) {
+      this.project.set(null);
+      return;
+    }
+
+    this.projectId = id;
+
+    this.projectsService
+      .getProjectById(id)
+      .pipe(
+        catchError(() => of(null))
+      )
+      .subscribe((project) => {
+        if (project) {
+          this.project.set(this.mapApiProject(project));
+          return;
+        }
+
+        this.project.set(getMockProjectById(id));
+      });
+  }
+
+  addVendor(): void {
+    if (!this.projectId) {
+      return;
+    }
+
+    this.router.navigate(['/vendors/new'], {
+      queryParams: { projectId: this.projectId }
+    });
+  }
+
+  removeVendor(): void {
+    if (!this.projectId) {
+      return;
+    }
+
+    this.router.navigate(['/vendors'], {
+      queryParams: { projectId: this.projectId }
+    });
+  }
+
+  createContract(): void {
+    if (!this.projectId) {
+      return;
+    }
+
+    this.router.navigate(['/contracts/new'], {
+      queryParams: { projectId: this.projectId }
+    });
+  }
+
+  addTransaction(): void {
+    if (!this.projectId) {
+      return;
+    }
+
+    this.router.navigate(['/transactions/new'], {
+      queryParams: { projectId: this.projectId }
+    });
+  }
+
+  private mapApiProject(project: Project): PortfolioProject {
+    return {
+      id: project.id,
+      name: project.name,
+      description: project.description ?? 'No description provided.',
+      location: project.location ?? 'TBD',
+      startDate: project.startDate ? String(project.startDate) : '',
+      endDate: project.endDate ? String(project.endDate) : '',
+      budget: project.budget ?? 0,
+      status: this.getStatus(project),
+      vendors: [],
+      contracts: [],
+      transactions: []
+    };
+  }
+
+  private getStatus(project: Project): string {
+    const now = Date.now();
+    const start = project.startDate ? new Date(project.startDate).getTime() : null;
+    const end = project.endDate ? new Date(project.endDate).getTime() : null;
+
+    if (end && end < now) {
+      return 'Completed';
+    }
+
+    if (start && start > now) {
+      return 'Planned';
+    }
+
+    return 'Active';
+  }
+}
