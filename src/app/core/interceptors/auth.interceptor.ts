@@ -1,6 +1,6 @@
 ﻿import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError } from 'rxjs';
+import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -13,7 +13,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         if (error?.status === 401 || error?.status === 403) {
           auth.logout();
         }
-        throw error;
+        return throwError(() => error);
       })
     );
   }
@@ -29,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error?.status === 401 || error?.status === 403) {
         auth.logout();
       }
-      throw error;
+      return throwError(() => error);
     })
   );
 };

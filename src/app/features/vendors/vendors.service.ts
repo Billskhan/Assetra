@@ -34,13 +34,14 @@ export class VendorsService {
     email?: string;
     phone?: string;
     isGlobal?: boolean;
+    projectId?: number;
   }) {
     return this.http.post<Vendor>('/vendors', payload);
   }
 
   attachVendorToProject(vendorId: number, projectId: number) {
     return this.http.post<VendorAttachResponse>(
-      `/vendors/${Number(vendorId)}/attach/${Number(projectId)}`,
+      `/vendors/${Number(vendorId)}/projects/${Number(projectId)}`,
       {},
     );
   }

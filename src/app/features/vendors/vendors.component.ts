@@ -21,6 +21,15 @@ export class VendorsComponent implements OnInit {
   targetProjectId = signal<number | null>(null);
   vendors = signal<Vendor[]>([]);
 
+  get createVendorQueryParams(): { projectId: number } | undefined {
+    const projectId = this.targetProjectId();
+    if (!projectId) {
+      return undefined;
+    }
+
+    return { projectId };
+  }
+
   ngOnInit(): void {
     const projectParam = this.route.snapshot.queryParamMap.get('projectId');
     const projectId = Number(projectParam);

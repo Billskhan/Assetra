@@ -1,7 +1,13 @@
 ﻿<div class="page">
   <div class="page-header">
     <h2>Add Vendor</h2>
-    <a routerLink="/vendors">Back to Vendors</a>
+    <a [routerLink]="['/vendors']" [queryParams]="projectId() ? { projectId: projectId() } : undefined">
+      Back to Vendors
+    </a>
+  </div>
+
+  <div class="status" *ngIf="projectId() as targetProjectId">
+    This vendor will be created and attached to project #{{ targetProjectId }}.
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
@@ -36,7 +42,7 @@
     <div class="status error" *ngIf="error()">{{ error() }}</div>
 
     <button type="submit" [disabled]="saving() || form.invalid">
-      {{ saving() ? 'Saving...' : 'Create Vendor' }}
+      {{ saving() ? 'Saving...' : projectId() ? 'Create and Attach Vendor' : 'Create Vendor' }}
     </button>
   </form>
 </div>

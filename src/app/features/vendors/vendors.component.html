@@ -1,11 +1,12 @@
 ﻿<div class="page">
   <div class="page-header">
     <h2>Vendors</h2>
-    <a routerLink="/vendors/new">Add Vendor</a>
+    <a [routerLink]="['/vendors/new']" [queryParams]="createVendorQueryParams">Add Vendor</a>
   </div>
 
   <div class="status" *ngIf="targetProjectId() as projectId">
-    Select a vendor to attach to project #{{ projectId }}.
+    Select an existing vendor to attach to project #{{ projectId }}, or create a new vendor for this
+    project. <a [routerLink]="['/projects', projectId]">Back to project</a>
   </div>
 
   <div class="status" *ngIf="loading()">Loading vendors...</div>
