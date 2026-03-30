@@ -10,6 +10,15 @@ export interface Vendor {
   createdAt?: string | Date;
 }
 
+export interface VendorAttachResponse {
+  success: boolean;
+  alreadyAttached?: boolean;
+  attachment?: {
+    id: number;
+    createdAt: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,5 +36,16 @@ export class VendorsService {
     isGlobal?: boolean;
   }) {
     return this.http.post<Vendor>('/vendors', payload);
+  }
+
+  attachVendorToProject(vendorId: number, projectId: number) {
+    return this.http.post<VendorAttachResponse>(
+      `/vendors/${Number(vendorId)}/attach/${Number(projectId)}`,
+      {},
+    );
+  }
+
+  getVendorsByProject(projectId: number) {
+    return this.http.get<Vendor[]>(`/vendors/project/${Number(projectId)}`);
   }
 }

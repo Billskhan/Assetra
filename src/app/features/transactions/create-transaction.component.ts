@@ -145,7 +145,10 @@ export class CreateTransactionComponent implements OnInit {
           this.success.set('Transaction created successfully.');
           this.resetForm();
         },
-        error: () => this.error.set('Failed to create transaction.')
+        error: (err: unknown) => {
+          const message = this.extractErrorMessage(err);
+          this.error.set(message ?? 'Failed to create transaction.');
+        }
       });
   }
 
@@ -208,5 +211,30 @@ export class CreateTransactionComponent implements OnInit {
     }
 
     this.items.push(this.createItem());
+  }
+
+  private extractErrorMessage(error: unknown): string | null {
+    if (!error) {
+      return null;
+    }
+
+    if (typeof error === 'string') {
+      return error;
+    }
+
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+
+    const candidate = error as { message?: string | string[] };
+    if (Array.isArray(candidate.message)) {
+      return candidate.message.filter(Boolean).join(', ');
+    }
+
+    if (typeof candidate.message === 'string' && candidate.message.trim().length > 0) {
+      return candidate.message;
+    }
+
+    return null;
   }
 }

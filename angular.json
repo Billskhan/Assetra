@@ -5,7 +5,6 @@
     "packageManager": "npm"
   },
   "newProjectRoot": "projects",
-  "defaultProject": "assetra",
   "projects": {
     "assetra": {
       "projectType": "application",

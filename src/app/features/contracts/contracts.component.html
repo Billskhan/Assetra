@@ -21,8 +21,8 @@
     </div>
     <div class="row" *ngFor="let contract of contracts()">
       <span>{{ contract.title }}</span>
-      <span>{{ contract.project.name }}</span>
-      <span>{{ contract.vendor.name }}</span>
+      <span>{{ contract.project?.name || ('#' + contract.projectId) }}</span>
+      <span>{{ contract.vendor?.name || ('#' + contract.vendorId) }}</span>
       <span>{{ contract.totalAmount }}</span>
       <span class="status-pill" [attr.data-status]="contract.status">
         {{ contract.status }}

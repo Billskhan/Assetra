@@ -1,6 +1,6 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Vendor, VendorsService } from './vendors.service';
 
 @Component({
@@ -11,13 +11,55 @@ import { Vendor, VendorsService } from './vendors.service';
 })
 export class VendorsComponent implements OnInit {
   private vendorsService = inject(VendorsService);
+  private route = inject(ActivatedRoute);
 
   loading = signal(true);
   error = signal<string | null>(null);
+  attachError = signal<string | null>(null);
+  attachSuccess = signal<string | null>(null);
+  attachingVendorId = signal<number | null>(null);
+  targetProjectId = signal<number | null>(null);
   vendors = signal<Vendor[]>([]);
 
   ngOnInit(): void {
+    const projectParam = this.route.snapshot.queryParamMap.get('projectId');
+    const projectId = Number(projectParam);
+
+    if (Number.isFinite(projectId) && projectId > 0) {
+      this.targetProjectId.set(projectId);
+    }
+
     this.loadVendors();
+  }
+
+  attachVendor(vendorId: number): void {
+    const projectId = this.targetProjectId();
+
+    if (!projectId || this.attachingVendorId()) {
+      return;
+    }
+
+    this.attachingVendorId.set(vendorId);
+    this.attachError.set(null);
+    this.attachSuccess.set(null);
+
+    this.vendorsService.attachVendorToProject(vendorId, projectId).subscribe({
+      next: (response) => {
+        const name = this.findVendorName(vendorId);
+        const suffix = response.alreadyAttached ? 'already assigned' : 'assigned';
+        this.attachSuccess.set(`${name} ${suffix} to project #${projectId}.`);
+        this.attachingVendorId.set(null);
+        this.loadVendors();
+      },
+      error: () => {
+        this.attachError.set('Failed to attach vendor to project.');
+        this.attachingVendorId.set(null);
+      }
+    });
+  }
+
+  canAttach(vendorId: number): boolean {
+    return this.targetProjectId() !== null && this.attachingVendorId() !== vendorId;
   }
 
   private loadVendors(): void {
@@ -34,5 +76,10 @@ export class VendorsComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  private findVendorName(vendorId: number): string {
+    const vendor = this.vendors().find((item) => item.id === vendorId);
+    return vendor?.name ?? `Vendor #${vendorId}`;
   }
 }

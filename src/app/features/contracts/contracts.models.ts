@@ -13,11 +13,16 @@ export interface ContractVendorRef {
 export interface Contract {
   id: number;
   title: string;
-  totalAmount: number;
+  description?: string | null;
+  totalAmount: number | string;
   status: ContractStatus;
-  project: ContractProjectRef;
-  vendor: ContractVendorRef;
+  organizationId: number;
+  projectId: number;
+  vendorId: number;
   createdAt: string;
+  updatedAt: string;
+  project?: ContractProjectRef | null;
+  vendor?: ContractVendorRef | null;
 }
 
 export interface CreateContractRequest {
@@ -28,9 +33,7 @@ export interface CreateContractRequest {
   vendorId: number;
 }
 
-export interface CreateContractResponse {
-  id: number;
-}
+export type CreateContractResponse = Contract;
 
 export interface VendorOption {
   id: number;

@@ -1,5 +1,6 @@
-﻿import { HttpInterceptorFn } from '@angular/common/http';
+﻿import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { catchError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -7,7 +8,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = auth.getToken();
 
   if (!token) {
-    return next(req);
+    return next(req).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error?.status === 401 || error?.status === 403) {
+          auth.logout();
+        }
+        throw error;
+      })
+    );
   }
 
   const authReq = req.clone({
@@ -16,5 +24,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }
   });
 
-  return next(authReq);
+  return next(authReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error?.status === 401 || error?.status === 403) {
+        auth.logout();
+      }
+      throw error;
+    })
+  );
 };

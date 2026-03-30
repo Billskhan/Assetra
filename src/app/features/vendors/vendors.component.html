@@ -4,8 +4,14 @@
     <a routerLink="/vendors/new">Add Vendor</a>
   </div>
 
+  <div class="status" *ngIf="targetProjectId() as projectId">
+    Select a vendor to attach to project #{{ projectId }}.
+  </div>
+
   <div class="status" *ngIf="loading()">Loading vendors...</div>
   <div class="status error" *ngIf="error()">{{ error() }}</div>
+  <div class="status" *ngIf="attachSuccess()">{{ attachSuccess() }}</div>
+  <div class="status error" *ngIf="attachError()">{{ attachError() }}</div>
 
   <div class="empty" *ngIf="!loading() && vendors().length === 0">
     No vendors found.
@@ -16,6 +22,14 @@
       <div class="name">{{ vendor.name }}</div>
       <div class="detail">Email: {{ vendor.email || '—' }}</div>
       <div class="detail">Phone: {{ vendor.phone || '—' }}</div>
+      <button
+        *ngIf="targetProjectId() !== null"
+        type="button"
+        [disabled]="!canAttach(vendor.id)"
+        (click)="attachVendor(vendor.id)"
+      >
+        {{ attachingVendorId() === vendor.id ? 'Attaching...' : 'Attach to Project' }}
+      </button>
     </div>
   </div>
 </div>

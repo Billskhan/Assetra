@@ -1,8 +1,13 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
-import { getMockProjectById, PortfolioProject } from '../../core/mock/portfolio.mock';
+import {
+  getMockProjectById,
+  PortfolioProject,
+  ProjectVendor
+} from '../../core/mock/portfolio.mock';
+import { Vendor, VendorsService } from '../vendors/vendors.service';
 import { Project } from './projects.models';
 import { ProjectsService } from './projects.service';
 
@@ -17,6 +22,7 @@ export class ProjectDashboardComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private projectsService = inject(ProjectsService);
+  private vendorsService = inject(VendorsService);
 
   private projectId: number | null = null;
   project = signal<PortfolioProject | null>(null);
@@ -32,16 +38,16 @@ export class ProjectDashboardComponent implements OnInit {
 
     this.projectsService
       .getProjectById(id)
-      .pipe(
-        catchError(() => of(null))
-      )
+      .pipe(catchError(() => of(null)))
       .subscribe((project) => {
         if (project) {
           this.project.set(this.mapApiProject(project));
+          this.loadAssignedVendors(id);
           return;
         }
 
         this.project.set(getMockProjectById(id));
+        this.loadAssignedVendors(id);
       });
   }
 
@@ -50,7 +56,7 @@ export class ProjectDashboardComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/vendors/new'], {
+    this.router.navigate(['/vendors'], {
       queryParams: { projectId: this.projectId }
     });
   }
@@ -83,6 +89,32 @@ export class ProjectDashboardComponent implements OnInit {
     this.router.navigate(['/transactions/new'], {
       queryParams: { projectId: this.projectId }
     });
+  }
+
+  private loadAssignedVendors(projectId: number): void {
+    this.vendorsService
+      .getVendorsByProject(projectId)
+      .pipe(catchError(() => of([] as Vendor[])))
+      .subscribe((vendors) => {
+        const current = this.project();
+        if (!current) {
+          return;
+        }
+
+        this.project.set({
+          ...current,
+          vendors: vendors.map((vendor) => this.mapProjectVendor(vendor))
+        });
+      });
+  }
+
+  private mapProjectVendor(vendor: Vendor): ProjectVendor {
+    return {
+      id: vendor.id,
+      name: vendor.name,
+      category: vendor.isGlobal ? 'Global Vendor' : 'Project Vendor',
+      status: 'Active'
+    };
   }
 
   private mapApiProject(project: Project): PortfolioProject {
