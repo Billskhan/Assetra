@@ -21,7 +21,7 @@ import { RolesGuard } from '../../platform/auth/roles.guard';
 export class VendorsController {
   constructor(private readonly vendorsService: VendorsService) {}
 
-  @Roles(Role.ADMIN, Role.PROJECT_MANAGER)
+  @Roles(Role.ADMIN, Role.PROJECT_MANAGER, Role.MANAGER)
   @Post()
   create(@Body() dto: CreateVendorDto, @CurrentUser() user: AuthUser) {
     return this.vendorsService.create(dto, user);
@@ -33,9 +33,19 @@ export class VendorsController {
     return this.vendorsService.findAll(user);
   }
 
-  @Roles(Role.ADMIN, Role.PROJECT_MANAGER)
-  @Post(':vendorId/projects/:projectId')
+  @Roles(Role.ADMIN, Role.PROJECT_MANAGER, Role.MANAGER)
+  @Post(':vendorId/attach/:projectId')
   attachToProject(
+    @Param('vendorId', ParseIntPipe) vendorId: number,
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @CurrentUser() user: AuthUser
+  ) {
+    return this.vendorsService.attachToProject(vendorId, projectId, user);
+  }
+
+  @Roles(Role.ADMIN, Role.PROJECT_MANAGER, Role.MANAGER)
+  @Post(':vendorId/projects/:projectId')
+  attachToProjectLegacy(
     @Param('vendorId', ParseIntPipe) vendorId: number,
     @Param('projectId', ParseIntPipe) projectId: number,
     @CurrentUser() user: AuthUser
@@ -50,5 +60,11 @@ export class VendorsController {
     @CurrentUser() user: AuthUser
   ) {
     return this.vendorsService.findByProject(projectId, user);
+  }
+
+  @Roles(Role.ADMIN, Role.PROJECT_MANAGER, Role.MANAGER, Role.STAKEHOLDER)
+  @Get('outstanding-summary')
+  getOutstandingSummary(@CurrentUser() user: AuthUser) {
+    return this.vendorsService.getOutstandingSummary(user);
   }
 }

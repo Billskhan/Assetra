@@ -17,15 +17,46 @@ let VendorsService = class VendorsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    create(dto, user) {
-        return this.prisma.vendor.create({
-            data: {
-                name: dto.name,
-                email: dto.email,
-                phone: dto.phone,
-                isGlobal: dto.isGlobal,
-                organizationId: user.organizationId
+    async create(dto, user) {
+        const { projectId } = dto;
+        if (!projectId) {
+            return this.prisma.vendor.create({
+                data: {
+                    name: dto.name,
+                    email: dto.email,
+                    phone: dto.phone,
+                    isGlobal: dto.isGlobal,
+                    organizationId: user.organizationId
+                }
+            });
+        }
+        return this.prisma.$transaction(async (tx) => {
+            const project = await tx.project.findFirst({
+                where: {
+                    id: projectId,
+                    organizationId: user.organizationId
+                },
+                select: { id: true }
+            });
+            if (!project) {
+                throw new common_1.NotFoundException('Project not found');
             }
+            const vendor = await tx.vendor.create({
+                data: {
+                    name: dto.name,
+                    email: dto.email,
+                    phone: dto.phone,
+                    isGlobal: dto.isGlobal,
+                    organizationId: user.organizationId
+                }
+            });
+            await tx.projectVendor.create({
+                data: {
+                    projectId,
+                    vendorId: vendor.id
+                }
+            });
+            return vendor;
         });
     }
     findAll(user) {
@@ -43,6 +74,11 @@ let VendorsService = class VendorsService {
             where: {
                 id: projectId,
                 organizationId: user.organizationId
+            },
+            select: {
+                id: true,
+                name: true,
+                organizationId: true
             }
         });
         if (!project) {
@@ -52,24 +88,71 @@ let VendorsService = class VendorsService {
             where: {
                 id: vendorId,
                 organizationId: user.organizationId
+            },
+            select: {
+                id: true,
+                name: true,
+                organizationId: true
             }
         });
         if (!vendor) {
             throw new common_1.NotFoundException('Vendor not found');
         }
-        return this.prisma.projectVendor.upsert({
+        if (project.organizationId !== vendor.organizationId) {
+            throw new common_1.ForbiddenException('Cross-organization attachment is not allowed');
+        }
+        const existing = await this.prisma.projectVendor.findUnique({
             where: {
                 projectId_vendorId: {
                     projectId,
                     vendorId
                 }
             },
-            update: {},
-            create: {
-                projectId,
-                vendorId
+            select: {
+                id: true,
+                createdAt: true
             }
         });
+        if (existing) {
+            return {
+                success: true,
+                alreadyAttached: true,
+                attachment: existing,
+                project,
+                vendor
+            };
+        }
+        try {
+            const attachment = await this.prisma.projectVendor.create({
+                data: {
+                    projectId,
+                    vendorId
+                },
+                select: {
+                    id: true,
+                    createdAt: true
+                }
+            });
+            return {
+                success: true,
+                alreadyAttached: false,
+                attachment,
+                project,
+                vendor
+            };
+        }
+        catch (error) {
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2002') {
+                return {
+                    success: true,
+                    alreadyAttached: true,
+                    project,
+                    vendor
+                };
+            }
+            throw error;
+        }
     }
     async findByProject(projectId, user) {
         const project = await this.prisma.project.findFirst({
@@ -102,6 +185,49 @@ let VendorsService = class VendorsService {
             }
         });
         return links.map((link) => link.vendor);
+    }
+    async getOutstandingSummary(user) {
+        const vendors = await this.prisma.vendor.findMany({
+            where: {
+                organizationId: user.organizationId
+            },
+            select: {
+                id: true,
+                name: true
+            },
+            orderBy: {
+                name: 'asc'
+            }
+        });
+        const grouped = await this.prisma.transaction.groupBy({
+            by: ['vendorId'],
+            where: {
+                organizationId: user.organizationId
+            },
+            _sum: {
+                totalAmount: true,
+                paidAmount: true,
+                balance: true
+            }
+        });
+        const byVendorId = new Map(grouped.map((row) => [
+            row.vendorId,
+            {
+                totalTransactionAmount: Number(row._sum.totalAmount ?? 0),
+                totalPaidAmount: Number(row._sum.paidAmount ?? 0),
+                totalBalance: Number(row._sum.balance ?? 0)
+            }
+        ]));
+        return vendors.map((vendor) => {
+            const summary = byVendorId.get(vendor.id);
+            return {
+                vendorId: vendor.id,
+                vendorName: vendor.name,
+                totalTransactionAmount: summary?.totalTransactionAmount ?? 0,
+                totalPaidAmount: summary?.totalPaidAmount ?? 0,
+                totalBalance: summary?.totalBalance ?? 0
+            };
+        });
     }
 };
 exports.VendorsService = VendorsService;

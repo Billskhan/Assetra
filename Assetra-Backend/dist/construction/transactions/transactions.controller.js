@@ -8,27 +8,63 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionsController = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
+const jwt_auth_guard_1 = require("../../platform/auth/jwt-auth.guard");
+const roles_decorator_1 = require("../../platform/auth/roles.decorator");
+const roles_guard_1 = require("../../platform/auth/roles.guard");
+const current_user_decorator_1 = require("../../platform/auth/current-user.decorator");
+const create_transaction_dto_1 = require("./dto/create-transaction.dto");
 const transactions_service_1 = require("./transactions.service");
 let TransactionsController = class TransactionsController {
     constructor(transactionsService) {
         this.transactionsService = transactionsService;
     }
-    status() {
-        return this.transactionsService.getStatus();
+    create(dto, user) {
+        return this.transactionsService.create(dto, user);
+    }
+    findAll(user) {
+        return this.transactionsService.findAll(user);
+    }
+    findByProject(projectId, user) {
+        return this.transactionsService.findByProject(projectId, user);
     }
 };
 exports.TransactionsController = TransactionsController;
 __decorate([
-    (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [create_transaction_dto_1.CreateTransactionDto, Object]),
     __metadata("design:returntype", void 0)
-], TransactionsController.prototype, "status", null);
+], TransactionsController.prototype, "create", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER, client_1.Role.STAKEHOLDER),
+    (0, common_1.Get)(),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], TransactionsController.prototype, "findAll", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER, client_1.Role.STAKEHOLDER),
+    (0, common_1.Get)('project/:projectId'),
+    __param(0, (0, common_1.Param)('projectId', common_1.ParseIntPipe)),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], TransactionsController.prototype, "findByProject", null);
 exports.TransactionsController = TransactionsController = __decorate([
     (0, common_1.Controller)('transactions'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [transactions_service_1.TransactionsService])
 ], TransactionsController);
 //# sourceMappingURL=transactions.controller.js.map

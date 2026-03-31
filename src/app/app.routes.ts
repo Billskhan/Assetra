@@ -39,6 +39,27 @@ export const appRoutes: Routes = [
           )
       },
       {
+        path: 'projects/:id/transactions/add',
+        loadComponent: () =>
+          import(
+            './features/transactions/pages/transaction-create-page.component'
+          ).then((m) => m.TransactionCreatePageComponent)
+      },
+      {
+        path: 'transactions/new',
+        loadComponent: () =>
+          import(
+            './features/transactions/pages/transaction-create-page.component'
+          ).then((m) => m.TransactionCreatePageComponent)
+      },
+      {
+        path: 'transactions/new-legacy',
+        loadComponent: () =>
+          import('./features/transactions/create-transaction.component').then(
+            (m) => m.CreateTransactionComponent
+          )
+      },
+      {
         path: 'projects/:id',
         loadComponent: () =>
           import('./features/projects/project-dashboard.component').then(
@@ -71,13 +92,6 @@ export const appRoutes: Routes = [
         loadComponent: () =>
           import('./features/contracts/contracts.component').then(
             (m) => m.ContractsComponent
-          )
-      },
-      {
-        path: 'transactions/new',
-        loadComponent: () =>
-          import('./features/transactions/create-transaction.component').then(
-            (m) => m.CreateTransactionComponent
           )
       }
     ]

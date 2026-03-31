@@ -100,6 +100,14 @@ export class ProjectsService {
       include: {
         projectUsers: {
           select: { userId: true }
+        },
+        projectVendors: {
+          include: {
+            vendor: true
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
         }
       }
     });
@@ -109,10 +117,23 @@ export class ProjectsService {
     }
 
     if (this.isAdminOrPm(user)) {
-      const { projectUsers, ...projectData } = project as ProjectShape & {
+      const { projectUsers, projectVendors, ...projectData } = project as ProjectShape & {
         projectUsers: Array<{ userId: number }>;
+        projectVendors: Array<{
+          vendor: {
+            id: number;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            isGlobal: boolean;
+            createdAt: Date;
+          };
+        }>;
       };
-      return this.mapProject(projectData);
+      return {
+        ...this.mapProject(projectData),
+        vendors: this.mapProjectVendors(projectVendors)
+      };
     }
 
     if (this.isManagerOrStakeholder(user)) {
@@ -124,11 +145,24 @@ export class ProjectsService {
         throw new ForbiddenException('Project access denied');
       }
 
-      const { projectUsers, ...projectData } = project as ProjectShape & {
+      const { projectUsers, projectVendors, ...projectData } = project as ProjectShape & {
         projectUsers: Array<{ userId: number }>;
+        projectVendors: Array<{
+          vendor: {
+            id: number;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            isGlobal: boolean;
+            createdAt: Date;
+          };
+        }>;
       };
 
-      return this.mapProject(projectData);
+      return {
+        ...this.mapProject(projectData),
+        vendors: this.mapProjectVendors(projectVendors)
+      };
     }
 
     throw new ForbiddenException('Project access denied');
@@ -204,5 +238,20 @@ export class ProjectsService {
       createdAt: project.createdAt,
       updatedAt: project.updatedAt
     };
+  }
+
+  private mapProjectVendors(
+    links: Array<{
+      vendor: {
+        id: number;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        isGlobal: boolean;
+        createdAt: Date;
+      };
+    }>
+  ) {
+    return links.map((link) => link.vendor);
   }
 }

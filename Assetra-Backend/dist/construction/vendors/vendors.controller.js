@@ -34,13 +34,19 @@ let VendorsController = class VendorsController {
     attachToProject(vendorId, projectId, user) {
         return this.vendorsService.attachToProject(vendorId, projectId, user);
     }
+    attachToProjectLegacy(vendorId, projectId, user) {
+        return this.vendorsService.attachToProject(vendorId, projectId, user);
+    }
     findByProject(projectId, user) {
         return this.vendorsService.findByProject(projectId, user);
+    }
+    getOutstandingSummary(user) {
+        return this.vendorsService.getOutstandingSummary(user);
     }
 };
 exports.VendorsController = VendorsController;
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
@@ -57,8 +63,8 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], VendorsController.prototype, "findAll", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER),
-    (0, common_1.Post)(':vendorId/projects/:projectId'),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER),
+    (0, common_1.Post)(':vendorId/attach/:projectId'),
     __param(0, (0, common_1.Param)('vendorId', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Param)('projectId', common_1.ParseIntPipe)),
     __param(2, (0, current_user_decorator_1.CurrentUser)()),
@@ -68,6 +74,16 @@ __decorate([
 ], VendorsController.prototype, "attachToProject", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER),
+    (0, common_1.Post)(':vendorId/projects/:projectId'),
+    __param(0, (0, common_1.Param)('vendorId', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Param)('projectId', common_1.ParseIntPipe)),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Object]),
+    __metadata("design:returntype", void 0)
+], VendorsController.prototype, "attachToProjectLegacy", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER),
     (0, common_1.Get)('project/:projectId'),
     __param(0, (0, common_1.Param)('projectId', common_1.ParseIntPipe)),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
@@ -75,6 +91,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", void 0)
 ], VendorsController.prototype, "findByProject", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.MANAGER, client_1.Role.STAKEHOLDER),
+    (0, common_1.Get)('outstanding-summary'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], VendorsController.prototype, "getOutstandingSummary", null);
 exports.VendorsController = VendorsController = __decorate([
     (0, common_1.Controller)('vendors'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

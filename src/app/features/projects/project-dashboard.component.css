@@ -33,6 +33,11 @@
   cursor: pointer;
 }
 
+.btn.compact {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
 .btn.primary {
   background: #0f172a;
   color: #ffffff;
@@ -85,6 +90,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  gap: 8px;
 }
 
 .section-header h3 {
@@ -106,9 +112,23 @@
   font-size: 13px;
 }
 
-.row.contracts,
 .row.transactions {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.contracts-grid {
+  min-width: 1100px;
+  grid-template-columns: 220px 160px 120px 120px 120px 120px 120px 100px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.table-scroll .row.transactions,
+.table-scroll .row.header.transactions {
+  min-width: 1200px;
+  grid-template-columns: 120px 180px 100px 140px 140px 180px 110px 120px 120px 120px 200px;
 }
 
 .row.header {
@@ -128,9 +148,25 @@
   font-weight: 600;
 }
 
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .empty {
   color: #94a3b8;
   font-size: 13px;
+}
+
+.status {
+  color: #475569;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.status.error {
+  color: #b91c1c;
 }
 
 .link {
@@ -139,10 +175,35 @@
   font-weight: 600;
 }
 
+.link-btn {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  padding: 0;
+  margin-left: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
 @media (max-width: 900px) {
   .row,
-  .row.contracts,
   .row.transactions {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .table-scroll .row.transactions,
+  .table-scroll .row.header.transactions {
+    min-width: 980px;
   }
 }

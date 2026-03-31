@@ -8,7 +8,7 @@ import { OrganizationsModule } from './platform/organizations/organizations.modu
 import { AuditModule } from './platform/audit/audit.module';
 import { ProjectsModule } from './construction/projects/projects.module';
 import { VendorsModule } from './construction/vendors/vendors.module';
-import { ContractsModule } from './construction/contracts/contracts.module';
+import { ContractsModule } from './contracts/contracts.module';
 import { TransactionsModule } from './construction/transactions/transactions.module';
 import { GovernanceModule } from './construction/governance/governance.module';
 import { DashboardModule } from './analytics/dashboard/dashboard.module';

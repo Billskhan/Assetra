@@ -28,78 +28,120 @@ enum ContractStatus {
   CANCELLED
 }
 
+enum EntryType {
+  Service
+  Material
+}
+
+enum PaymentMode {
+  Cash
+  Bank
+  Online
+  Cheque
+}
+
+enum ContractMilestoneStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
 model Organization {
-  id        Int       @id @default(autoincrement())
-  name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  users     User[]
-  projects  Project[]
-  vendors   Vendor[]
-  contracts Contract[]
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  users              User[]
+  projects           Project[]
+  stages             ProjectStage[]
+  vendors            Vendor[]
+  contracts          Contract[]
+  transactions       Transaction[]
+  contractMilestones ContractMilestone[]
+  contractPayments   ContractPayment[]
 }
 
 model User {
-  id             Int       @id @default(autoincrement())
-  fullName       String
-  email          String    @unique
-  passwordHash   String
-  role           Role
-  organizationId Int
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdProjects Project[]    @relation("ProjectCreatedBy")
-  projectUsers   ProjectUser[]
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                  Int           @id @default(autoincrement())
+  fullName            String
+  email               String        @unique
+  passwordHash        String
+  role                Role
+  organizationId      Int
+  organization        Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdProjects     Project[]     @relation("ProjectCreatedBy")
+  createdTransactions Transaction[] @relation("TransactionCreatedBy")
+  projectUsers        ProjectUser[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   @@index([organizationId])
 }
 
 model Project {
-  id             Int          @id @default(autoincrement())
+  id             Int                @id @default(autoincrement())
   name           String
   description    String?
   location       String?
   startDate      DateTime?
   endDate        DateTime?
-  budget         Decimal?     @db.Decimal(12, 2)
+  budget         Decimal?           @db.Decimal(12, 2)
   organizationId Int
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdById    Int?
-  createdBy      User?        @relation("ProjectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy      User?              @relation("ProjectCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   projectUsers   ProjectUser[]
   governance     ProjectGovernance?
   contracts      Contract[]
+  stages         ProjectStage[]
+  transactions   Transaction[]
   projectVendors ProjectVendor[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   @@index([organizationId])
   @@index([createdById])
 }
 
 model ProjectGovernance {
-  projectId                 Int      @id
-  project                   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  requireContractApproval   Boolean  @default(false)
-  requirePaymentApproval    Boolean  @default(false)
-  requireTxApproval         Boolean  @default(false)
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  projectId               Int      @id
+  project                 Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requireContractApproval Boolean  @default(false)
+  requirePaymentApproval  Boolean  @default(false)
+  requireTxApproval       Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model ProjectStage {
+  id             Int           @id @default(autoincrement())
+  name           String
+  organizationId Int
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      Int
+  project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([projectId, name])
+  @@index([organizationId])
+  @@index([projectId])
 }
 
 model Vendor {
-  id             Int          @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   name           String
   email          String?
   phone          String?
-  isGlobal       Boolean      @default(false)
+  isGlobal       Boolean         @default(false)
   organizationId Int
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contracts      Contract[]
+  transactions   Transaction[]
   projectVendors ProjectVendor[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([organizationId])
 }
@@ -119,23 +161,113 @@ model ProjectVendor {
 }
 
 model Contract {
-  id             Int            @id @default(autoincrement())
-  title          String
-  description    String?
-  totalAmount    Decimal        @db.Decimal(12, 2)
-  status         ContractStatus @default(DRAFT)
-  organizationId Int
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  projectId      Int
-  project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  vendorId       Int
-  vendor         Vendor         @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id              Int                 @id @default(autoincrement())
+  title           String
+  description     String?
+  type            String?
+  scopeOfWork     String?
+  startDate       DateTime?
+  expectedEndDate DateTime?
+  notes           String?
+  totalAmount     Decimal             @db.Decimal(12, 2)
+  status          ContractStatus      @default(DRAFT)
+  organizationId  Int
+  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId       Int
+  project         Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  vendorId        Int
+  vendor          Vendor              @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  milestones      ContractMilestone[]
+  payments        ContractPayment[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   @@index([organizationId])
   @@index([projectId])
   @@index([vendorId])
+}
+
+model ContractMilestone {
+  id             Int                     @id @default(autoincrement())
+  contractId     Int
+  organizationId Int
+  name           String
+  sequenceNo     Int
+  targetValue    Float?
+  unit           String?
+  amount         Float
+  paidAmount     Float                   @default(0)
+  status         ContractMilestoneStatus @default(PENDING)
+  completedOn    DateTime?
+  remarks        String?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  contract     Contract       @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments     ContractPayment[]
+
+  @@index([organizationId])
+  @@index([contractId])
+  @@unique([contractId, sequenceNo])
+}
+
+model ContractPayment {
+  id             Int                @id @default(autoincrement())
+  contractId     Int
+  milestoneId    Int?
+  organizationId Int
+  paymentDate    DateTime
+  amount         Float
+  paymentMode    PaymentMode?
+  receiptNo      String?
+  remarks        String?
+  createdAt      DateTime           @default(now())
+
+  contract     Contract           @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  milestone    ContractMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([contractId])
+  @@index([milestoneId])
+}
+
+model Transaction {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      Int
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  vendorId       Int
+  vendor         Vendor       @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  createdById    Int
+  createdBy      User         @relation("TransactionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  date           DateTime     @db.Date
+  stageName      String?
+  entryType      EntryType
+  category       String
+  subCategory    String
+  item           String
+  quantity       Decimal?     @db.Decimal(12, 2)
+  unit           String?
+  rate           Decimal?     @db.Decimal(12, 2)
+  carriage       Decimal?     @db.Decimal(12, 2)
+  length         String?
+  receiptNo      String?
+  paymentMode    PaymentMode
+  totalAmount    Decimal      @db.Decimal(12, 2)
+  paidAmount     Decimal      @db.Decimal(12, 2)
+  balance        Decimal      @db.Decimal(12, 2)
+  comments       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([vendorId])
+  @@index([createdById])
+  @@index([date])
 }
 
 model ProjectUser {

@@ -83,6 +83,14 @@ let ProjectsService = class ProjectsService {
             include: {
                 projectUsers: {
                     select: { userId: true }
+                },
+                projectVendors: {
+                    include: {
+                        vendor: true
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
                 }
             }
         });
@@ -90,16 +98,22 @@ let ProjectsService = class ProjectsService {
             throw new common_1.NotFoundException('Project not found');
         }
         if (this.isAdminOrPm(user)) {
-            const { projectUsers, ...projectData } = project;
-            return this.mapProject(projectData);
+            const { projectUsers, projectVendors, ...projectData } = project;
+            return {
+                ...this.mapProject(projectData),
+                vendors: this.mapProjectVendors(projectVendors)
+            };
         }
         if (this.isManagerOrStakeholder(user)) {
             const assigned = project.projectUsers.some((projectUser) => projectUser.userId === user.userId);
             if (!assigned) {
                 throw new common_1.ForbiddenException('Project access denied');
             }
-            const { projectUsers, ...projectData } = project;
-            return this.mapProject(projectData);
+            const { projectUsers, projectVendors, ...projectData } = project;
+            return {
+                ...this.mapProject(projectData),
+                vendors: this.mapProjectVendors(projectVendors)
+            };
         }
         throw new common_1.ForbiddenException('Project access denied');
     }
@@ -164,6 +178,9 @@ let ProjectsService = class ProjectsService {
             createdAt: project.createdAt,
             updatedAt: project.updatedAt
         };
+    }
+    mapProjectVendors(links) {
+        return links.map((link) => link.vendor);
     }
 };
 exports.ProjectsService = ProjectsService;

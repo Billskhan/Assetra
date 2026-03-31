@@ -1,4 +1,5 @@
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateVendorDto {
   @IsString()
@@ -14,4 +15,10 @@ export class CreateVendorDto {
 
   @IsBoolean()
   isGlobal!: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  projectId?: number;
 }

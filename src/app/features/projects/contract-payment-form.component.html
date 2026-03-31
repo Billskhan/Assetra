@@ -1,0 +1,59 @@
+<div class="modal-shell">
+  <div class="modal-header">
+    <h3>Record Payment</h3>
+    <button type="button" class="ghost" (click)="close()">Close</button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
+    <div class="field">
+      <label for="milestoneId">Milestone (optional)</label>
+      <select id="milestoneId" formControlName="milestoneId">
+        <option [ngValue]="null">Contract level payment</option>
+        <option *ngFor="let milestone of milestones" [ngValue]="milestone.id">
+          {{ milestone.sequenceNo }}. {{ milestone.name }} ({{ milestone.balance | currency: 'USD':'symbol':'1.0-0' }} left)
+        </option>
+      </select>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label for="paymentDate">Payment Date</label>
+        <input id="paymentDate" type="date" formControlName="paymentDate" />
+      </div>
+
+      <div class="field">
+        <label for="amount">Amount</label>
+        <input id="amount" type="number" min="0.01" formControlName="amount" />
+      </div>
+
+      <div class="field">
+        <label for="paymentMode">Payment Mode</label>
+        <select id="paymentMode" formControlName="paymentMode">
+          <option *ngFor="let mode of paymentModes" [value]="mode">{{ mode }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="receiptNo">Receipt No</label>
+      <input id="receiptNo" formControlName="receiptNo" />
+    </div>
+
+    <div class="field">
+      <label for="remarks">Remarks</label>
+      <textarea id="remarks" rows="2" formControlName="remarks"></textarea>
+    </div>
+
+    <div class="status">Remaining balance: {{ maxAllowedAmount() | currency: 'USD':'symbol':'1.0-0' }}</div>
+    <div class="status error" *ngIf="exceedsLimit()">Payment exceeds remaining balance.</div>
+    <div class="status error" *ngIf="localError()">{{ localError() }}</div>
+    <div class="status error" *ngIf="!localError() && store.error()">{{ store.error() }}</div>
+
+    <div class="modal-actions">
+      <button type="button" class="ghost" (click)="close()">Cancel</button>
+      <button type="submit" class="primary" [disabled]="store.saving()">
+        {{ store.saving() ? 'Saving...' : 'Save Payment' }}
+      </button>
+    </div>
+  </form>
+</div>

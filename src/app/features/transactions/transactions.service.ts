@@ -1,17 +1,28 @@
-﻿import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import {
   CreateTransactionRequest,
-  CreateTransactionResponse
+  CreateTransactionResponse,
+  Transaction
 } from './transactions.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TransactionsService {
-  createTransaction(_payload: CreateTransactionRequest): Observable<CreateTransactionResponse> {
-    return throwError(() =>
-      new Error('Transactions API is not available on the backend yet.')
+  constructor(private http: HttpClient) {}
+
+  createTransaction(payload: CreateTransactionRequest) {
+    return this.http.post<CreateTransactionResponse>('/transactions', payload);
+  }
+
+  getTransactions() {
+    return this.http.get<Transaction[]>('/transactions');
+  }
+
+  getTransactionsByProject(projectId: number) {
+    return this.http.get<Transaction[]>(
+      `/transactions/project/${Number(projectId)}`
     );
   }
 }

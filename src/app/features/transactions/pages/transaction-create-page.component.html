@@ -1,0 +1,188 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>New Transaction</h2>
+      <p class="subtitle">Master-data driven transaction entry.</p>
+    </div>
+    <a class="link" *ngIf="route.snapshot.paramMap.get('id') as projectId" [routerLink]="['/projects', projectId]">
+      Back to Project
+    </a>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-layout">
+    <section class="card">
+      <h3>Transaction Information</h3>
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="projectId">Project ID</label>
+          <input id="projectId" formControlName="projectId" />
+        </div>
+
+        <div class="field">
+          <label for="date">Date</label>
+          <input id="date" type="date" formControlName="date" />
+        </div>
+
+        <div class="field">
+          <label for="stageId">Stage</label>
+          <select id="stageId" formControlName="stageId">
+            <option value="">Select stage</option>
+            <option *ngFor="let stage of stages()" [value]="stage.id">{{ stage.name }}</option>
+          </select>
+          <div class="error" *ngIf="form.controls.stageId.touched && form.controls.stageId.invalid">
+            Stage is required.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="entryType">Entry Type</label>
+          <select id="entryType" formControlName="entryType">
+            <option *ngFor="let type of entryTypeOptions" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="vendorId">Vendor (optional)</label>
+          <input id="vendorId" formControlName="vendorId" placeholder="Vendor id or code" />
+        </div>
+
+        <div class="field">
+          <label for="paymentMode">Payment Mode</label>
+          <select id="paymentMode" formControlName="paymentMode">
+            <option [ngValue]="null">Select payment mode</option>
+            <option *ngFor="let mode of paymentModeOptions" [value]="mode">{{ mode }}</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Classification</h3>
+      <p class="hint">Suggested items are based on selected subcategory.</p>
+      <p class="hint">Use custom item only when master item is missing.</p>
+
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="categoryId">Category</label>
+          <select id="categoryId" formControlName="categoryId">
+            <option value="">Select category</option>
+            <option *ngFor="let category of categories()" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+          <div class="error" *ngIf="form.controls.categoryId.touched && form.controls.categoryId.invalid">
+            Category is required.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="subCategoryId">SubCategory</label>
+          <select id="subCategoryId" formControlName="subCategoryId">
+            <option value="">Select subcategory</option>
+            <option *ngFor="let subCategory of filteredSubCategories()" [value]="subCategory.id">
+              {{ subCategory.name }}
+            </option>
+          </select>
+          <div class="error" *ngIf="form.controls.subCategoryId.touched && form.controls.subCategoryId.invalid">
+            SubCategory is required.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="itemId">Item</label>
+          <select id="itemId" formControlName="itemId">
+            <option [ngValue]="null">Select item</option>
+            <option *ngFor="let item of filteredItems()" [ngValue]="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field checkbox-field">
+          <label>
+            <input type="checkbox" formControlName="itemNotFound" />
+            Item not found
+          </label>
+        </div>
+
+        <div class="field full-width">
+          <label for="customItemText">Custom Item</label>
+          <input id="customItemText" formControlName="customItemText" placeholder="Enter custom item" />
+          <div class="error" *ngIf="form.controls.customItemText.enabled && form.controls.customItemText.touched && form.controls.customItemText.invalid">
+            Custom item text is required.
+          </div>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span>Category: <strong>{{ classificationPreview().categoryName }}</strong></span>
+        <span>SubCategory: <strong>{{ classificationPreview().subCategoryName }}</strong></span>
+        <span>Item: <strong>{{ classificationPreview().itemName }}</strong></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Amounts</h3>
+
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="quantity">Quantity</label>
+          <input id="quantity" type="number" min="0" formControlName="quantity" />
+        </div>
+
+        <div class="field">
+          <label for="unit">Unit</label>
+          <input id="unit" formControlName="unit" />
+        </div>
+
+        <div class="field">
+          <label for="rate">Rate</label>
+          <input id="rate" type="number" min="0" formControlName="rate" />
+        </div>
+
+        <div class="field">
+          <label for="carriage">Carriage</label>
+          <input id="carriage" type="number" min="0" formControlName="carriage" />
+        </div>
+
+        <div class="field">
+          <label for="totalAmount">Total Amount</label>
+          <input id="totalAmount" type="number" min="0.01" formControlName="totalAmount" />
+          <div class="error" *ngIf="form.controls.totalAmount.touched && form.controls.totalAmount.invalid">
+            Total amount is required and must be greater than zero.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="paidAmount">Paid Amount</label>
+          <input id="paidAmount" type="number" min="0" formControlName="paidAmount" />
+        </div>
+
+        <div class="field">
+          <label for="balanceAmount">Balance Amount</label>
+          <input id="balanceAmount" type="number" formControlName="balanceAmount" readonly />
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Notes</h3>
+      <div class="field">
+        <label for="comments">Comments</label>
+        <textarea id="comments" rows="4" formControlName="comments"></textarea>
+      </div>
+    </section>
+
+    <div class="status error" *ngIf="submitError()">{{ submitError() }}</div>
+    <div class="status success" *ngIf="submitSuccessId()">Transaction created: {{ submitSuccessId() }}</div>
+
+    <div class="actions">
+      <button type="button" class="ghost" (click)="resetForm()" [disabled]="submitInProgress()">
+        Reset
+      </button>
+      <button type="submit" class="primary" [disabled]="submitInProgress() || form.invalid">
+        {{ submitInProgress() ? 'Saving...' : 'Create Transaction' }}
+      </button>
+    </div>
+  </form>
+</div>

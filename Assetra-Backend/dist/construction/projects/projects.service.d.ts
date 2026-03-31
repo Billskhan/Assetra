@@ -26,6 +26,14 @@ export declare class ProjectsService {
         updatedAt: Date;
     }[]>;
     findOne(projectId: number, user: AuthUser): Promise<{
+        vendors: {
+            id: number;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            isGlobal: boolean;
+            createdAt: Date;
+        }[];
         id: number;
         name: string;
         description: string | null;
@@ -46,4 +54,5 @@ export declare class ProjectsService {
     private isManagerOrStakeholder;
     private ensureCanManageProjects;
     private mapProject;
+    private mapProjectVendors;
 }

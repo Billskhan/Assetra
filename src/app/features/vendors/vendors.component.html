@@ -1,4 +1,4 @@
-ï»¿<div class="page">
+<div class="page">
   <div class="page-header">
     <h2>Vendors</h2>
     <a [routerLink]="['/vendors/new']" [queryParams]="createVendorQueryParams">Add Vendor</a>
@@ -9,8 +9,15 @@
     project. <a [routerLink]="['/projects', projectId]">Back to project</a>
   </div>
 
+  <div class="status" *ngIf="!loading()">
+    Vendor totals: {{ totals().totalTransactionAmount | currency: 'USD':'symbol':'1.0-0' }} total,
+    {{ totals().totalPaidAmount | currency: 'USD':'symbol':'1.0-0' }} paid,
+    {{ totals().totalBalance | currency: 'USD':'symbol':'1.0-0' }} outstanding.
+  </div>
+
   <div class="status" *ngIf="loading()">Loading vendors...</div>
   <div class="status error" *ngIf="error()">{{ error() }}</div>
+  <div class="status error" *ngIf="outstandingError()">{{ outstandingError() }}</div>
   <div class="status" *ngIf="attachSuccess()">{{ attachSuccess() }}</div>
   <div class="status error" *ngIf="attachError()">{{ attachError() }}</div>
 
@@ -21,8 +28,29 @@
   <div class="vendor-grid" *ngIf="!loading() && vendors().length > 0">
     <div class="vendor-card" *ngFor="let vendor of vendors()">
       <div class="name">{{ vendor.name }}</div>
-      <div class="detail">Email: {{ vendor.email || 'â€”' }}</div>
-      <div class="detail">Phone: {{ vendor.phone || 'â€”' }}</div>
+      <div class="detail">Email: {{ vendor.email || '—' }}</div>
+      <div class="detail">Phone: {{ vendor.phone || '—' }}</div>
+      <div class="detail">
+        Outstanding:
+        {{
+          (getVendorOutstanding(vendor.id)?.totalBalance ?? 0)
+            | currency: 'USD':'symbol':'1.0-0'
+        }}
+      </div>
+      <div class="detail">
+        Paid:
+        {{
+          (getVendorOutstanding(vendor.id)?.totalPaidAmount ?? 0)
+            | currency: 'USD':'symbol':'1.0-0'
+        }}
+      </div>
+      <div class="detail">
+        Transactions:
+        {{
+          (getVendorOutstanding(vendor.id)?.totalTransactionAmount ?? 0)
+            | currency: 'USD':'symbol':'1.0-0'
+        }}
+      </div>
       <button
         *ngIf="targetProjectId() !== null"
         type="button"

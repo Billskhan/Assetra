@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Role } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { PrismaService } from '../prisma/prisma.service';
 import { AuthUser } from './interfaces/auth-user.interface';
 
 interface JwtPayload {
@@ -13,7 +14,7 @@ interface JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -21,16 +22,30 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload: JwtPayload): AuthUser {
-    if (!payload?.sub || !payload?.orgId || !payload?.role) {
+  async validate(payload: JwtPayload): Promise<AuthUser> {
+    if (!payload?.sub) {
       throw new UnauthorizedException('Invalid token');
     }
 
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        organizationId: true,
+        role: true,
+        email: true
+      }
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
     return {
-      userId: payload.sub,
-      organizationId: payload.orgId,
-      role: payload.role,
-      email: payload.email
+      userId: user.id,
+      organizationId: user.organizationId,
+      role: user.role,
+      email: user.email
     };
   }
 }

@@ -19,6 +19,14 @@ export interface VendorAttachResponse {
   };
 }
 
+export interface VendorOutstandingSummary {
+  vendorId: number;
+  vendorName: string;
+  totalTransactionAmount: number;
+  totalPaidAmount: number;
+  totalBalance: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -41,12 +49,16 @@ export class VendorsService {
 
   attachVendorToProject(vendorId: number, projectId: number) {
     return this.http.post<VendorAttachResponse>(
-      `/vendors/${Number(vendorId)}/projects/${Number(projectId)}`,
+      `/vendors/${Number(vendorId)}/attach/${Number(projectId)}`,
       {},
     );
   }
 
   getVendorsByProject(projectId: number) {
     return this.http.get<Vendor[]>(`/vendors/project/${Number(projectId)}`);
+  }
+
+  getOutstandingSummary() {
+    return this.http.get<VendorOutstandingSummary[]>('/vendors/outstanding-summary');
   }
 }

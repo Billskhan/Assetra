@@ -1,16 +1,56 @@
-﻿export interface TransactionItemRequest {
-  name: string;
-  quantity: number;
-  unitPrice: number;
-}
-
 export interface CreateTransactionRequest {
-  title: string;
   projectId: number;
-  contractId?: number;
-  items: TransactionItemRequest[];
+  date: string;
+  stageName?: string;
+  entryType: TransactionEntryType;
+  category: string;
+  subCategory: string;
+  item: string;
+  receiptNo?: string;
+  vendorId: number;
+  quantity?: number;
+  unit?: string;
+  rate?: number;
+  carriage?: number;
+  length?: string;
+  paymentMode: TransactionPaymentMode;
+  totalAmount: number;
+  paidAmount: number;
+  balance: number;
+  comments?: string;
 }
 
 export interface CreateTransactionResponse {
-  id: number | string;
+  id: number;
 }
+
+export interface Transaction {
+  id: number;
+  organizationId?: number;
+  projectId: number;
+  vendorId: number;
+  date: string | Date;
+  stageName?: string | null;
+  entryType: TransactionEntryType;
+  category: string;
+  subCategory: string;
+  item: string;
+  receiptNo?: string | null;
+  quantity?: number | null;
+  unit?: string | null;
+  rate?: number | null;
+  carriage?: number | null;
+  length?: string | null;
+  paymentMode: TransactionPaymentMode;
+  totalAmount: number;
+  paidAmount: number;
+  balance: number;
+  comments?: string | null;
+  createdBy?: number;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
+
+export type TransactionEntryType = 'Service' | 'Material';
+
+export type TransactionPaymentMode = 'Cash' | 'Bank' | 'Online' | 'Cheque';

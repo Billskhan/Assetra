@@ -1,7 +1,11 @@
-﻿import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Vendor, VendorsService } from './vendors.service';
+import {
+  Vendor,
+  VendorOutstandingSummary,
+  VendorsService
+} from './vendors.service';
 
 @Component({
   selector: 'app-vendors',
@@ -20,6 +24,24 @@ export class VendorsComponent implements OnInit {
   attachingVendorId = signal<number | null>(null);
   targetProjectId = signal<number | null>(null);
   vendors = signal<Vendor[]>([]);
+  outstandingError = signal<string | null>(null);
+  private outstandingByVendorId = signal<Record<number, VendorOutstandingSummary>>({});
+
+  totals = computed(() => {
+    return Object.values(this.outstandingByVendorId()).reduce(
+      (acc, row) => {
+        acc.totalTransactionAmount += Number(row.totalTransactionAmount ?? 0);
+        acc.totalPaidAmount += Number(row.totalPaidAmount ?? 0);
+        acc.totalBalance += Number(row.totalBalance ?? 0);
+        return acc;
+      },
+      {
+        totalTransactionAmount: 0,
+        totalPaidAmount: 0,
+        totalBalance: 0
+      }
+    );
+  });
 
   get createVendorQueryParams(): { projectId: number } | undefined {
     const projectId = this.targetProjectId();
@@ -39,6 +61,7 @@ export class VendorsComponent implements OnInit {
     }
 
     this.loadVendors();
+    this.loadOutstandingSummary();
   }
 
   attachVendor(vendorId: number): void {
@@ -71,6 +94,10 @@ export class VendorsComponent implements OnInit {
     return this.targetProjectId() !== null && this.attachingVendorId() !== vendorId;
   }
 
+  getVendorOutstanding(vendorId: number): VendorOutstandingSummary | undefined {
+    return this.outstandingByVendorId()[vendorId];
+  }
+
   private loadVendors(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -83,6 +110,28 @@ export class VendorsComponent implements OnInit {
       error: () => {
         this.error.set('Failed to load vendors.');
         this.loading.set(false);
+      }
+    });
+  }
+
+  private loadOutstandingSummary(): void {
+    this.outstandingError.set(null);
+
+    this.vendorsService.getOutstandingSummary().subscribe({
+      next: (rows) => {
+        const mapped = (rows ?? []).reduce<Record<number, VendorOutstandingSummary>>(
+          (acc, row) => {
+            acc[row.vendorId] = row;
+            return acc;
+          },
+          {}
+        );
+
+        this.outstandingByVendorId.set(mapped);
+      },
+      error: () => {
+        this.outstandingError.set('Failed to load vendor outstanding summary.');
+        this.outstandingByVendorId.set({});
       }
     });
   }

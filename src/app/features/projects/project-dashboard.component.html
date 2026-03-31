@@ -65,47 +65,117 @@
   <section class="list-card">
     <div class="section-header">
       <h3>Contracts</h3>
+      <button type="button" class="btn" (click)="createContract()">Add Contract</button>
     </div>
-    <div class="empty" *ngIf="project.contracts.length === 0">No contracts created yet.</div>
-    <div class="table" *ngIf="project.contracts.length > 0">
-      <div class="row header contracts">
+
+    <div class="status error" *ngIf="contractsStore.error()">{{ contractsStore.error() }}</div>
+
+    <div class="status" *ngIf="contractsStore.loading()">Loading contracts...</div>
+
+    <div class="empty" *ngIf="!contractsStore.loading() && contractsStore.contracts().length === 0">
+      No contracts created yet.
+      <button type="button" class="link-btn" (click)="createContract()">Add Contract</button>
+    </div>
+
+    <div class="table table-scroll" *ngIf="!contractsStore.loading() && contractsStore.contracts().length > 0">
+      <div class="row header contracts-grid">
         <span>Contract</span>
         <span>Vendor</span>
-        <span>Amount</span>
+        <span>Type</span>
+        <span>Total</span>
+        <span>Paid</span>
+        <span>Balance</span>
         <span>Status</span>
+        <span>Action</span>
       </div>
-      <div class="row contracts" *ngFor="let contract of project.contracts">
+      <div
+        class="row contracts-grid"
+        *ngFor="let contract of contractsStore.contracts(); trackBy: trackByContractId"
+      >
         <span class="title">{{ contract.title }}</span>
-        <span>{{ contract.vendor }}</span>
-        <span>{{ contract.amount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ contract.vendorName }}</span>
+        <span>{{ contract.type || '-' }}</span>
+        <span>{{ contract.totalAmount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ contract.totalPaid | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ contract.balance | currency: 'USD':'symbol':'1.0-0' }}</span>
         <span>{{ contract.status }}</span>
+        <span>
+          <button type="button" class="btn compact" (click)="openContract(contract.id)">View</button>
+        </span>
       </div>
     </div>
   </section>
 
   <section class="list-card">
     <div class="section-header">
-      <h3>Recent Transactions</h3>
+      <h3>Transactions</h3>
     </div>
     <div class="empty" *ngIf="project.transactions.length === 0">
       No transactions logged yet.
     </div>
-    <div class="table" *ngIf="project.transactions.length > 0">
+    <div class="table table-scroll" *ngIf="project.transactions.length > 0">
       <div class="row header transactions">
-        <span>Transaction</span>
-        <span>Amount</span>
-        <span>Status</span>
         <span>Date</span>
+        <span>Vendor</span>
+        <span>Entry</span>
+        <span>Category</span>
+        <span>Sub-Category</span>
+        <span>Item</span>
+        <span>Payment</span>
+        <span>Total</span>
+        <span>Paid</span>
+        <span>Balance</span>
+        <span>Comments</span>
       </div>
       <div class="row transactions" *ngFor="let txn of project.transactions">
-        <span class="title">{{ txn.title }}</span>
-        <span>{{ txn.amount | currency: 'USD':'symbol':'1.0-0' }}</span>
-        <span>{{ txn.status }}</span>
         <span>{{ txn.date | date: 'mediumDate' }}</span>
+        <span>{{ txn.vendorName || ('Vendor #' + txn.vendorId) }}</span>
+        <span>{{ txn.entryType }}</span>
+        <span>{{ txn.category }}</span>
+        <span>{{ txn.subCategory }}</span>
+        <span class="truncate" [title]="txn.item">{{ txn.item }}</span>
+        <span>{{ txn.paymentMode }}</span>
+        <span>{{ txn.totalAmount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ txn.paidAmount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ txn.balance | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span class="truncate" [title]="txn.comments || ''">{{ txn.comments || '-' }}</span>
       </div>
     </div>
   </section>
 </div>
+
+<div class="overlay" *ngIf="showContractForm()">
+  <app-project-contract-form
+    [projectId]="project()?.id || 0"
+    [vendors]="assignedVendorOptions()"
+    (saved)="onContractSaved()"
+    (cancelled)="closeContractForm()"
+  ></app-project-contract-form>
+</div>
+
+<ng-container *ngIf="showContractDetail()">
+  <div class="overlay" *ngIf="contractsStore.selectedContract() as selectedContract">
+    <app-project-contract-detail
+      [contract]="selectedContract"
+      [saving]="contractsStore.saving()"
+      (paymentRequested)="openPaymentForm($event)"
+      (closed)="closeContractDetail()"
+    ></app-project-contract-detail>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="showPaymentForm()">
+  <div class="overlay" *ngIf="contractsStore.selectedContract() as selectedContract">
+    <app-contract-payment-form
+      [contractId]="selectedContract.id"
+      [contractBalance]="selectedContract.totals.balance"
+      [milestones]="selectedContract.milestones"
+      [defaultMilestoneId]="paymentMilestoneId()"
+      (saved)="onPaymentSaved()"
+      (cancelled)="closePaymentForm()"
+    ></app-contract-payment-form>
+  </div>
+</ng-container>
 
 <ng-template #notFound>
   <div class="page">

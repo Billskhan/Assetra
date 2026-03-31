@@ -1,0 +1,89 @@
+<div class="modal-shell" *ngIf="contract as c">
+  <div class="modal-header">
+    <div>
+      <h3>{{ c.title }}</h3>
+      <p class="subtitle">Vendor: {{ c.vendor.name }} | Status: {{ c.status }}</p>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="ghost" (click)="requestContractPayment()">Record Payment</button>
+      <button type="button" class="ghost" (click)="close()">Close</button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span>Total</span>
+      <strong>{{ c.totals.totalAmount | currency: 'USD':'symbol':'1.0-0' }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Paid</span>
+      <strong>{{ c.totals.totalPaid | currency: 'USD':'symbol':'1.0-0' }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Balance</span>
+      <strong>{{ c.totals.balance | currency: 'USD':'symbol':'1.0-0' }}</strong>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table">
+      <div class="row header milestones-grid">
+        <span>Milestone</span>
+        <span>Target</span>
+        <span>Amount</span>
+        <span>Paid</span>
+        <span>Balance</span>
+        <span>Status</span>
+        <span>Action</span>
+      </div>
+      <div class="row milestones-grid" *ngFor="let milestone of c.milestones">
+        <span>{{ milestone.sequenceNo }}. {{ milestone.name }}</span>
+        <span>
+          {{ milestone.targetValue ?? '-' }}
+          {{ milestone.unit || '' }}
+        </span>
+        <span>{{ milestone.amount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ milestone.paidAmount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ milestone.balance | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ milestone.status }}</span>
+        <span>
+          <button
+            type="button"
+            class="ghost"
+            [disabled]="saving || milestone.balance <= 0"
+            (click)="requestMilestonePayment(milestone.id)"
+          >
+            Pay
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <h4>Payments</h4>
+  <div class="table-wrap" *ngIf="c.payments.length > 0; else noPayments">
+    <div class="table">
+      <div class="row header payments-grid">
+        <span>Date</span>
+        <span>Milestone</span>
+        <span>Amount</span>
+        <span>Mode</span>
+        <span>Receipt</span>
+        <span>Remarks</span>
+      </div>
+      <div class="row payments-grid" *ngFor="let payment of c.payments">
+        <span>{{ payment.paymentDate | date: 'mediumDate' }}</span>
+        <span>
+          {{ payment.milestoneName || 'Contract Payment' }}
+        </span>
+        <span>{{ payment.amount | currency: 'USD':'symbol':'1.0-0' }}</span>
+        <span>{{ payment.paymentMode || '-' }}</span>
+        <span>{{ payment.receiptNo || '-' }}</span>
+        <span class="truncate" [title]="payment.remarks || ''">{{ payment.remarks || '-' }}</span>
+      </div>
+    </div>
+  </div>
+  <ng-template #noPayments>
+    <div class="empty">No payments recorded yet.</div>
+  </ng-template>
+</div>

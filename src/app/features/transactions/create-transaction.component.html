@@ -1,101 +1,295 @@
-﻿<div class="page">
-  <h2>New Transaction</h2>
-
-  <div class="status" *ngIf="projectsLoading()">Loading projects...</div>
-  <div class="status error" *ngIf="projectsError()">{{ projectsError() }}</div>
-  <div class="status" *ngIf="!projectsLoading() && projects().length === 0">
-    No projects available yet.
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>Add Transaction</h2>
+      <p class="subtitle">
+        Fast entry for
+        {{ projectName() || ('Project #' + currentProjectId()) }}.
+      </p>
+    </div>
+    <a
+      class="link"
+      *ngIf="currentProjectId() as projectId"
+      [routerLink]="['/projects', projectId]"
+    >
+      Back to Project
+    </a>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <div class="field">
-      <label for="title">Title</label>
-      <input id="title" formControlName="title" placeholder="Transaction title" />
-      <div class="field-error" *ngIf="form.controls.title.touched && form.controls.title.invalid">
-        Title is required.
+  <div class="status error" *ngIf="projectContextError()">
+    {{ projectContextError() }}
+  </div>
+
+  <div class="status" *ngIf="vendorsLoading()">Loading vendors...</div>
+  <div class="status error" *ngIf="vendorsError()">{{ vendorsError() }}</div>
+
+  <form *ngIf="!projectContextError()" [formGroup]="form" (ngSubmit)="submit()">
+    <section class="card">
+      <div class="section-head">
+        <h3>Basic Info</h3>
+        <div class="project-chip">Project #{{ form.controls.projectId.value }}</div>
       </div>
-    </div>
 
-    <div class="field">
-      <label for="projectId">Project</label>
-      <select id="projectId" formControlName="projectId">
-        <option [ngValue]="null">Select a project</option>
-        <option *ngFor="let project of projects()" [ngValue]="project.id">
-          {{ project.name }}
-        </option>
-      </select>
-      <div class="field-error" *ngIf="form.controls.projectId.touched && form.controls.projectId.invalid">
-        Project is required.
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="contractId">Contract ID (optional)</label>
-      <input
-        id="contractId"
-        type="number"
-        formControlName="contractId"
-        placeholder="Contract ID"
-      />
-    </div>
-
-    <div class="items" formArrayName="items">
-      <div
-        class="item-row"
-        *ngFor="let item of items.controls; let i = index"
-        [formGroupName]="i"
-      >
+      <div class="grid grid-4">
         <div class="field">
-          <label>Name</label>
-          <input formControlName="name" placeholder="Item name" />
-          <div class="field-error" *ngIf="item.get('name')?.touched && item.get('name')?.invalid">
-            Required.
+          <label for="date">Date</label>
+          <input id="date" type="date" formControlName="date" />
+          <div class="field-error" *ngIf="form.controls.date.touched && form.controls.date.invalid">
+            Date is required.
           </div>
         </div>
+
         <div class="field">
-          <label>Quantity</label>
-          <input type="number" formControlName="quantity" min="1" />
-          <div class="field-error" *ngIf="item.get('quantity')?.touched && item.get('quantity')?.invalid">
-            Must be at least 1.
+          <label for="entryType">Entry Type</label>
+          <select id="entryType" formControlName="entryType">
+            <option *ngFor="let entryType of entryTypeOptions" [ngValue]="entryType">
+              {{ entryType }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="vendorId">Vendor</label>
+          <select id="vendorId" formControlName="vendorId">
+            <option [ngValue]="null">Select vendor</option>
+            <option *ngFor="let vendor of vendors()" [ngValue]="vendor.id">
+              {{ vendor.name }}
+            </option>
+          </select>
+          <div class="field-error" *ngIf="form.controls.vendorId.touched && form.controls.vendorId.invalid">
+            Vendor is required.
           </div>
         </div>
+
         <div class="field">
-          <label>Unit Price</label>
-          <input type="number" formControlName="unitPrice" min="0" />
-          <div class="field-error" *ngIf="item.get('unitPrice')?.touched && item.get('unitPrice')?.invalid">
-            Must be 0 or more.
-          </div>
+          <label for="paymentMode">Payment Mode</label>
+          <select id="paymentMode" formControlName="paymentMode">
+            <option *ngFor="let paymentMode of paymentModeOptions" [ngValue]="paymentMode">
+              {{ paymentMode }}
+            </option>
+          </select>
         </div>
-        <div class="field total">
-          <label>Line Total</label>
-          <div class="line-total">{{ itemTotal(i) }}</div>
-        </div>
-        <button
-          type="button"
-          class="remove"
-          (click)="removeItem(i)"
-          [disabled]="items.length === 1"
-        >
-          Remove
-        </button>
       </div>
-    </div>
+    </section>
 
-    <button type="button" class="add" (click)="addItem()">Add Item</button>
+    <section class="card">
+      <div class="section-head">
+        <h3>Classification</h3>
+        <span class="section-note">Keep these visible for reporting and daily search.</span>
+      </div>
 
-    <div class="summary">
-      <div class="summary-label">Total (display only)</div>
-      <div class="summary-value">{{ total() }}</div>
-    </div>
+      <div class="grid grid-3">
+        <div class="field">
+          <label for="category">Category</label>
+          <input id="category" formControlName="category" placeholder="e.g. Civil Works" />
+          <div class="field-error" *ngIf="form.controls.category.touched && form.controls.category.invalid">
+            Category is required.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="subCategory">Sub-Category</label>
+          <input
+            id="subCategory"
+            formControlName="subCategory"
+            placeholder="e.g. Concrete"
+          />
+          <div class="field-error" *ngIf="form.controls.subCategory.touched && form.controls.subCategory.invalid">
+            Sub-category is required.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="item">Item</label>
+          <input id="item" formControlName="item" placeholder="e.g. RCC Slab" />
+          <div class="field-error" *ngIf="form.controls.item.touched && form.controls.item.invalid">
+            Item is required.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card amount-card">
+      <div class="section-head">
+        <div>
+          <h3>Amount Details</h3>
+          <span class="section-note">Balance = Total Amount - Paid Amount</span>
+        </div>
+        <div class="quick-summary">
+          <div>
+            <span class="summary-label">Total</span>
+            <strong>{{ amountSnapshot().total | number: '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span class="summary-label">Paid</span>
+            <strong>{{ amountSnapshot().paid | number: '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span class="summary-label">Balance</span>
+            <strong>{{ amountSnapshot().balance | number: '1.2-2' }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-5 compact">
+        <div class="field">
+          <label for="quantity">Quantity</label>
+          <input id="quantity" type="number" min="0" formControlName="quantity" />
+        </div>
+
+        <div class="field">
+          <label for="unit">Unit</label>
+          <input id="unit" formControlName="unit" placeholder="e.g. bag, ton, ft" />
+        </div>
+
+        <div class="field">
+          <label for="rate">Rate per Unit</label>
+          <input id="rate" type="number" min="0" formControlName="rate" />
+        </div>
+
+        <div class="field">
+          <label for="carriageInline">Carriage</label>
+          <input id="carriageInline" type="number" min="0" formControlName="carriage" />
+        </div>
+
+        <div class="formula-box" *ngIf="calculatedTotal() !== null">
+          <span>Calculated Total</span>
+          <strong>{{ calculatedTotal()! | number: '1.2-2' }}</strong>
+          <button type="button" class="ghost-btn" (click)="useCalculatedTotal()">
+            Use This
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-3">
+        <div class="field core">
+          <label for="totalAmount">Total Amount</label>
+          <input
+            id="totalAmount"
+            type="number"
+            min="0"
+            formControlName="totalAmount"
+            (input)="markTotalManualOverride()"
+          />
+          <div class="field-hint" *ngIf="calculatedTotal() !== null">
+            Qty x Rate + Carriage can fill this automatically, but you can override it.
+          </div>
+          <div class="field-error" *ngIf="form.controls.totalAmount.touched && form.controls.totalAmount.hasError('required')">
+            Total amount is required.
+          </div>
+          <div class="field-error" *ngIf="form.controls.totalAmount.touched && form.controls.totalAmount.hasError('min')">
+            Total amount must be 0 or more.
+          </div>
+        </div>
+
+        <div class="field core">
+          <label for="paidAmount">Paid Amount</label>
+          <input id="paidAmount" type="number" min="0" formControlName="paidAmount" />
+          <div class="field-error" *ngIf="form.controls.paidAmount.touched && form.controls.paidAmount.hasError('required')">
+            Paid amount is required.
+          </div>
+          <div class="field-error" *ngIf="form.controls.paidAmount.touched && form.controls.paidAmount.hasError('min')">
+            Paid amount must be 0 or more.
+          </div>
+          <div
+            class="field-error"
+            *ngIf="
+              (form.controls.paidAmount.touched || form.controls.totalAmount.touched) &&
+              form.hasError('paidAmountExceedsTotal')
+            "
+          >
+            Paid amount cannot be greater than total amount.
+          </div>
+        </div>
+
+        <div class="field core">
+          <label for="balance">Balance</label>
+          <input
+            id="balance"
+            type="number"
+            min="0"
+            formControlName="balance"
+            (input)="markBalanceManualOverride()"
+          />
+          <div class="field-hint">
+            Editing balance will recalculate paid amount.
+          </div>
+          <div
+            class="field-error"
+            *ngIf="
+              (form.controls.balance.touched || form.controls.totalAmount.touched) &&
+              form.hasError('balanceNegative')
+            "
+          >
+            Balance cannot be negative.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card optional-card">
+      <button type="button" class="optional-toggle" (click)="toggleOptionalDetails()">
+        <span>Optional Details</span>
+        <span>{{ optionalExpanded() ? 'Hide' : 'Show' }}</span>
+      </button>
+
+      <div class="optional-grid" *ngIf="optionalExpanded()">
+        <div class="grid grid-3">
+          <div class="field">
+            <label for="stageName">Stage</label>
+            <input id="stageName" formControlName="stageName" placeholder="Stage name" />
+          </div>
+
+          <div class="field">
+            <label for="receiptNo">Receipt No</label>
+            <input id="receiptNo" formControlName="receiptNo" placeholder="Receipt number" />
+          </div>
+
+          <div class="field">
+            <label for="length">Length</label>
+            <input id="length" formControlName="length" placeholder="Optional length" />
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="comments">Comments</label>
+            <textarea
+              id="comments"
+              formControlName="comments"
+              rows="4"
+              placeholder="Any extra notes for the team"
+            ></textarea>
+          </div>
+
+          <div class="optional-summary">
+            <div>
+              <span class="summary-label">Entry Type</span>
+              <strong>{{ form.controls.entryType.value }}</strong>
+            </div>
+            <div>
+              <span class="summary-label">Payment Mode</span>
+              <strong>{{ form.controls.paymentMode.value }}</strong>
+            </div>
+            <div>
+              <span class="summary-label">Vendor</span>
+              <strong>{{ selectedVendorName() }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="status error" *ngIf="error()">{{ error() }}</div>
-    <div class="status success" *ngIf="success()">{{ success() }}</div>
 
-    <button
-      type="submit"
-      [disabled]="saving() || projectsLoading() || projects().length === 0 || form.invalid"
-    >
-      {{ saving() ? 'Saving...' : 'Create Transaction' }}
-    </button>
+    <div class="actions">
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="saving() || vendorsLoading() || form.invalid"
+      >
+        {{ saving() ? 'Saving...' : 'Add Transaction' }}
+      </button>
+    </div>
   </form>
 </div>

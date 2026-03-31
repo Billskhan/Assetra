@@ -25,10 +25,68 @@ export declare class VendorsController {
         isGlobal: boolean;
     }[]>;
     attachToProject(vendorId: number, projectId: number, user: AuthUser): Promise<{
-        id: number;
-        createdAt: Date;
-        projectId: number;
-        vendorId: number;
+        success: boolean;
+        alreadyAttached: boolean;
+        attachment: {
+            id: number;
+            createdAt: Date;
+        };
+        project: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+        vendor: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+    } | {
+        success: boolean;
+        alreadyAttached: boolean;
+        project: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+        vendor: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+        attachment?: undefined;
+    }>;
+    attachToProjectLegacy(vendorId: number, projectId: number, user: AuthUser): Promise<{
+        success: boolean;
+        alreadyAttached: boolean;
+        attachment: {
+            id: number;
+            createdAt: Date;
+        };
+        project: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+        vendor: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+    } | {
+        success: boolean;
+        alreadyAttached: boolean;
+        project: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+        vendor: {
+            name: string;
+            id: number;
+            organizationId: number;
+        };
+        attachment?: undefined;
     }>;
     findByProject(projectId: number, user: AuthUser): Promise<{
         email: string | null;
@@ -39,5 +97,12 @@ export declare class VendorsController {
         updatedAt: Date;
         phone: string | null;
         isGlobal: boolean;
+    }[]>;
+    getOutstandingSummary(user: AuthUser): Promise<{
+        vendorId: number;
+        vendorName: string;
+        totalTransactionAmount: number;
+        totalPaidAmount: number;
+        totalBalance: number;
     }[]>;
 }

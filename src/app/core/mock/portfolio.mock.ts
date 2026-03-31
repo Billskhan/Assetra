@@ -30,10 +30,18 @@ export interface ProjectContract {
 
 export interface ProjectTransaction {
   id: number;
-  title: string;
-  amount: number;
-  status: 'Pending' | 'Approved' | 'Paid';
   date: string;
+  vendorId: number;
+  vendorName?: string;
+  entryType: 'Service' | 'Material';
+  category: string;
+  subCategory: string;
+  item: string;
+  paymentMode: 'Cash' | 'Bank' | 'Online' | 'Cheque';
+  totalAmount: number;
+  paidAmount: number;
+  balance: number;
+  comments?: string;
 }
 
 export interface PortfolioProject {
@@ -69,8 +77,35 @@ export const MOCK_PROJECTS: PortfolioProject[] = [
       { id: 5002, title: 'Core & Shell', vendor: 'Civic Build Co.', amount: 540000, status: 'Active' }
     ],
     transactions: [
-      { id: 9001, title: 'Steel Fabrication Milestone', amount: 85000, status: 'Paid', date: '2026-02-12' },
-      { id: 9002, title: 'Concrete Pour - Phase 2', amount: 54000, status: 'Approved', date: '2026-03-05' }
+      {
+        id: 9001,
+        date: '2026-02-12',
+        vendorId: 2,
+        vendorName: 'Ironline Steelworks',
+        entryType: 'Material',
+        category: 'Structural',
+        subCategory: 'Steel',
+        item: 'Fabrication Milestone',
+        paymentMode: 'Bank',
+        totalAmount: 85000,
+        paidAmount: 85000,
+        balance: 0,
+        comments: 'Milestone payout'
+      },
+      {
+        id: 9002,
+        date: '2026-03-05',
+        vendorId: 1,
+        vendorName: 'Civic Build Co.',
+        entryType: 'Service',
+        category: 'Civil Works',
+        subCategory: 'Concrete',
+        item: 'Phase 2 Pour',
+        paymentMode: 'Cheque',
+        totalAmount: 54000,
+        paidAmount: 30000,
+        balance: 24000
+      }
     ]
   },
   {
@@ -106,7 +141,20 @@ export const MOCK_PROJECTS: PortfolioProject[] = [
       { id: 5201, title: 'Facade Upgrade', vendor: 'Summit Glass & Facade', amount: 120000, status: 'Draft' }
     ],
     transactions: [
-      { id: 9101, title: 'Facade Design Deposit', amount: 15000, status: 'Pending', date: '2026-01-22' }
+      {
+        id: 9101,
+        date: '2026-01-22',
+        vendorId: 4,
+        vendorName: 'Summit Glass & Facade',
+        entryType: 'Service',
+        category: 'Facade',
+        subCategory: 'Design',
+        item: 'Design Deposit',
+        paymentMode: 'Online',
+        totalAmount: 15000,
+        paidAmount: 5000,
+        balance: 10000
+      }
     ]
   }
 ];

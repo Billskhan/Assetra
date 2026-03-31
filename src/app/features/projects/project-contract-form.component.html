@@ -1,0 +1,111 @@
+<div class="modal-shell">
+  <div class="modal-header">
+    <h3>Add Contract</h3>
+    <button type="button" class="ghost" (click)="close()">Close</button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="modal-form">
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="vendorId">Vendor</label>
+        <select id="vendorId" formControlName="vendorId">
+          <option [ngValue]="null">Select vendor</option>
+          <option *ngFor="let vendor of vendors" [ngValue]="vendor.id">{{ vendor.name }}</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="title">Title</label>
+        <input id="title" formControlName="title" placeholder="Contract title" />
+      </div>
+
+      <div class="field">
+        <label for="type">Type</label>
+        <input id="type" formControlName="type" placeholder="Boring / Plumbing / Civil" />
+      </div>
+
+      <div class="field">
+        <label for="totalAmount">Total Amount</label>
+        <input id="totalAmount" type="number" min="0.01" formControlName="totalAmount" />
+      </div>
+
+      <div class="field">
+        <label for="startDate">Start Date</label>
+        <input id="startDate" type="date" formControlName="startDate" />
+      </div>
+
+      <div class="field">
+        <label for="expectedEndDate">Expected End Date</label>
+        <input id="expectedEndDate" type="date" formControlName="expectedEndDate" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="scopeOfWork">Scope of Work</label>
+      <textarea id="scopeOfWork" rows="2" formControlName="scopeOfWork"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="notes">Notes</label>
+      <textarea id="notes" rows="2" formControlName="notes"></textarea>
+    </div>
+
+    <div class="milestones-head">
+      <h4>Milestones</h4>
+      <button type="button" class="ghost" (click)="addMilestone()">Add milestone</button>
+    </div>
+
+    <div formArrayName="milestones" class="milestones-grid">
+      <div
+        class="milestone-row"
+        *ngFor="let row of milestoneForms; let i = index; trackBy: trackByIndex"
+        [formGroupName]="i"
+      >
+        <div class="field">
+          <label>Name</label>
+          <input formControlName="name" placeholder="Advance / Roof Slab" />
+        </div>
+        <div class="field">
+          <label>Sequence</label>
+          <input type="number" min="1" formControlName="sequenceNo" />
+        </div>
+        <div class="field">
+          <label>Target Value</label>
+          <input type="number" min="0" formControlName="targetValue" />
+        </div>
+        <div class="field">
+          <label>Unit</label>
+          <input formControlName="unit" placeholder="ft / lot" />
+        </div>
+        <div class="field">
+          <label>Amount</label>
+          <input type="number" min="0.01" formControlName="amount" />
+        </div>
+        <div class="field">
+          <label>Remarks</label>
+          <input formControlName="remarks" />
+        </div>
+        <div class="field action-cell">
+          <button type="button" class="ghost danger" (click)="removeMilestone(i)">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" *ngIf="milestones.length > 0">
+      Milestone Total: {{ milestonesTotal() | currency: 'USD':'symbol':'1.0-0' }}
+    </div>
+    <div class="status error" *ngIf="hasMilestoneTotalMismatch()">
+      Milestone total must match contract total amount.
+    </div>
+
+    <div class="status error" *ngIf="localError()">{{ localError() }}</div>
+    <div class="status error" *ngIf="!localError() && store.error()">{{ store.error() }}</div>
+
+    <div class="modal-actions">
+      <button type="button" class="ghost" (click)="close()">Cancel</button>
+      <button type="submit" class="primary" [disabled]="store.saving()">
+        {{ store.saving() ? 'Saving...' : 'Save Contract' }}
+      </button>
+    </div>
+  </form>
+</div>

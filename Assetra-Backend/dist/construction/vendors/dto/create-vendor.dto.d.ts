@@ -3,4 +3,5 @@ export declare class CreateVendorDto {
     email?: string;
     phone?: string;
     isGlobal: boolean;
+    projectId?: number;
 }
